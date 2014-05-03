@@ -1,0 +1,38 @@
+- I want you to create an SDL project which draws a lunar scene. 
+
+Done - The viewpoint should be directly toward the origin and set up 10 units from the origin in the positive z-axis and 2 units up in the y-direction. 
+
+- On the left hand, right hand, and back of the scene, I want you to generate mountains using Perlin noise and use Bezier patches to draw this terrain smoothly. 
+
+Done - In the center of the scene you should see a smooth planar ground with with a crater texture on it. 
+
+Done - Resting at the origin of the scene, should be a lunar lander. 
+
+Done - Hitting the space bar should start a 5 second animation where the lander takes off, goes up a little, and lands back down. 
+
+- The texture for the ground should be applied with an oversampling. 
+
+- Submit this project in Hw3.zip. You should with your project a readme.txt listing the group members, their ids, and where to find stuff in your code that illustrates each of the above coding things can be found in your project sources.
+
+
+Point Breakdown
+
+Done - Code contributed to existing project is well-documented and follows the SJSU CS Department guidelines for C++ (Undergrad version) (1.5pt). 
+
+- Paper summary (Grad Version) (1.5pt) 
+
+Done - Readme.tx (0.5pts)	2pts
+
+- Perlin noise terrain	2pts
+
+- Terrain drawn using Bezier Patch, glMap2* functions etc.	2pts
+
+Done - Crater texture map on flat ground	1pt
+
+Done - Oversampling used to draw texture	1pt
+
+Done - Lunar lander initially draw at origin	1pt
+
+Done - Hitting space bar animates as described above	1pt
+
+Total	10pts
