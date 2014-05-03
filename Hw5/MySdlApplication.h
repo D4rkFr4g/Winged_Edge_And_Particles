@@ -149,7 +149,7 @@ class MySdlApplication
                  GL_STATIC_DRAW);
            }
            /*-----------------------------------------------*/
-           void draw(const ShaderState& curSS)
+           void draw(const ShaderState& curSS, GLenum mode)
            {
               /*	PURPOSE:		Draws an OpenGL object
               RECEIVES:	curSS - ShaderState to be used when drawing
@@ -182,7 +182,7 @@ class MySdlApplication
               glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 
               // draw!
-              glDrawElements(GL_TRIANGLES, iboLen, GL_UNSIGNED_SHORT, 0);
+              glDrawElements(mode, iboLen, GL_UNSIGNED_SHORT, 0);
 
               // Disable the attributes used by our shader
               safe_glDisableVertexAttribArray(curSS.h_aPosition);
@@ -192,7 +192,7 @@ class MySdlApplication
               safe_glDisableVertexAttribArray(curSS.h_aTexCoord2);
            }
            /*-----------------------------------------------*/
-           void draw(const ShaderState& curSS, Matrix4 MVM)
+           void draw(const ShaderState& curSS, Matrix4 MVM, GLenum mode)
            {
               /*	PURPOSE:		Draws an OpenGL object with a specific Model View Matrix
               RECEIVES:	curSS - ShaderState to be used when drawing
@@ -210,7 +210,7 @@ class MySdlApplication
               NMVM.writeToColumnMajorMatrix(glmatrix); // send NMVM
               safe_glUniformMatrix4fv(curSS.h_uNormalMatrix, glmatrix);
 
-              draw(curSS);
+              draw(curSS, mode);
            }
         };
         

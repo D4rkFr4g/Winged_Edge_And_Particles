@@ -28,6 +28,7 @@ public:
    RigidBody **children;
    Cvec3 color;
    MySdlApplication::Geometry *geom;
+   GLenum mode;
    string name;
    int numOfChildren;
    int material;

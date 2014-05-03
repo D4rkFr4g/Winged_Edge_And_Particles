@@ -19,6 +19,7 @@ RigidBody::RigidBody()
    isVisible = true;
    isChildVisible = true;
    material = SOLID;
+   mode = GL_TRIANGLES;
 }
 /*-----------------------------------------------*/
 RigidBody::~RigidBody()
@@ -58,6 +59,7 @@ RigidBody::RigidBody(RigTForm rtf_, Matrix4 scale_, RigidBody **children_, MySdl
    color = color_;
    isVisible = true;
    material = material_;
+   mode = GL_TRIANGLES;
 }
 /*-----------------------------------------------*/
 void RigidBody::drawRigidBody(RigTForm invEyeRbt)
@@ -93,7 +95,7 @@ void RigidBody::draw(RigTForm respectFrame_, Matrix4 respectScale_)
    if (isVisible)
    {
       if (geom != NULL)
-         geom->draw(curSS, MVM);
+         geom->draw(curSS, MVM, mode);
    }
 
    //Draw Children
@@ -125,7 +127,7 @@ void RigidBody::draw(Matrix4 respectFrame_)
    if (isVisible)
    {
       if (geom != NULL)
-         geom->draw(curSS, MVM);
+         geom->draw(curSS, MVM, mode);
    }
 
    //Draw Children
