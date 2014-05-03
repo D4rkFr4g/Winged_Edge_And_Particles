@@ -1,18 +1,62 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="glsupport.cpp" />
-    <ClCompile Include="MySdlApplication.cpp" />
-    <ClCompile Include="ppm.cpp" />
+    <ClCompile Include="ppm.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="MySdlApplication.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="glsupport.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="WE_Edge.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="WE_Face.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="WE_Vertex.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="RigidBody.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cvec.h" />
-    <ClInclude Include="geometrymaker.h" />
-    <ClInclude Include="glsupport.h" />
-    <ClInclude Include="matrix4.h" />
-    <ClInclude Include="MySdlApplication.h" />
-    <ClInclude Include="quat.h" />
-    <ClInclude Include="rigtform.h" />
+    <ClInclude Include="cvec.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="geometrymaker.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="glsupport.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix4.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MySdlApplication.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="quat.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="rigtform.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="WE_Edge.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="WE_Face.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="WE_Vertex.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="RigidBody.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="TODO.txt" />
@@ -83,6 +127,12 @@
   <ItemGroup>
     <Filter Include="Shaders">
       <UniqueIdentifier>{2c058fff-8965-4f10-ad43-2e3f30f74aca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{ca59e1e9-82ad-4faf-b569-0b4ffe14cd13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{6acc32ca-93cc-4294-a97e-b6c0ed114cd9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

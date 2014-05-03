@@ -1,38 +1,65 @@
-- I want you to create an SDL project which draws a lunar scene. 
+For CS116b students, for Hw5 you will code the Exploding, Epileptic Cube of DoomTM.
 
-Done - The viewpoint should be directly toward the origin and set up 10 units from the origin in the positive z-axis and 2 units up in the y-direction. 
+Done -	First, I want you to implement the classes in class given for winged-edge 
+	representation. 
 
-- On the left hand, right hand, and back of the scene, I want you to generate mountains using Perlin noise and use Bezier patches to draw this terrain smoothly. 
+-	Then make a cube using this representation. 
 
-Done - In the center of the scene you should see a smooth planar ground with with a crater texture on it. 
+-	When you launch your SDL application, it should draw this as a gray cube with 
+	edges of size 2 centered at the origin. 
 
-Done - Resting at the origin of the scene, should be a lunar lander. 
+-	The edges of the cube should be colored black, and the back ground of the 
+	scene is light blue. 
 
-Done - Hitting the space bar should start a 5 second animation where the lander takes off, goes up a little, and lands back down. 
+-	The viewpoint should be at +5 units along the z-axis, 2 units up. I don't 
+	care what light effects you use in the fragment shader. 
+	
+-	Once launched, your program should start an animation, at each phase in the 
+	animation the item being illustrated for that phaase should cycle through the 
+	three colors dark red, dark blue, and dark green for 1/4 of a second. 
+	
+-	The animation traverses each vertex among the vertices in your cube, 
+	it first flashes red, green, blue the vertex, it then flashes red, green, blue 
+	each edge connected to that vertex, it randomly picks an outgoing edge flashes 
+	it, flashes the two faces adjacent to that edge and proceeds to the vertex on 
+	the other side of that edge and repeats the process. 
+	
+-	Needly to say, this might appear quite nightmarish to someone with epilepsy. 
+	To solve this problem, the b key can be used to blow up your cube. When the b 
+	key is pressed, I would like your program to replace the cube with a particle 
+	system representing an explosion. The particles in this systems should shoot 
+	out randomly in all directions. 
+	
+-	Each particle should last a random amount of time between two and five seconds.
+	The update step in the motion of the particles should occur in onLoop, and the 
+	drawing occur in onRender. A random number of particles might be generated in 
+	a given onLoop call. Particles need not interact with each other. 
+	
+-	Particles should continue to be generated while the b key is pressed. Six 
+	seconds after the b key is released, the system should reset itself and 
+	redraw the initial cube.
 
-- The texture for the ground should be applied with an oversampling. 
 
-- Submit this project in Hw3.zip. You should with your project a readme.txt listing the group members, their ids, and where to find stuff in your code that illustrates each of the above coding things can be found in your project sources.
+///////////////////////
+// Point Breakdown
+//////////////////////
+-	Code contributed to existing project is well-documented and 
+	follows the SJSU CS Department guidelines for C++	1pt
 
+Done -	Winged-edge representation classes implemented (each class 0.5pts).	1.5pts
 
-Point Breakdown
+-	Cube drawn at initial position as described above	1pt
 
-Done - Code contributed to existing project is well-documented and follows the SJSU CS Department guidelines for C++ (Undergrad version) (1.5pt). 
+-	Animation cycles through three colors as described	1pt
 
-- Paper summary (Grad Version) (1.5pt) 
+-	Animation flashes vertices, edges, and faces as described (1 pt each).	3pts
 
-Done - Readme.tx (0.5pts)	2pts
+-	b key causes the cube to be replaced with the explosion sequence.	0.5pts
 
-- Perlin noise terrain	2pts
+-	Particle are generated while the b key is pressed (0.5pts), 
+	direction, number of particles generated is random and done in onLoop 
+	as well as a particle updates (1pt).	1.5pts
 
-- Terrain drawn using Bezier Patch, glMap2* functions etc.	2pts
-
-Done - Crater texture map on flat ground	1pt
-
-Done - Oversampling used to draw texture	1pt
-
-Done - Lunar lander initially draw at origin	1pt
-
-Done - Hitting space bar animates as described above	1pt
+-	Animation reset works as described	1pt
 
 Total	10pts

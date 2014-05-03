@@ -9,25 +9,9 @@ with a simple particle system.
 *
 ******************************************************
 */
-#define SDL_MAIN_HANDLED
-#include <vector>
-#include <string>
-#include <cmath>
-#include <memory>
-#include <stdexcept>
-#include <stdlib.h>
-#include <time.h>
-#if __GNUG__
-#	include <tr1/memory>
-#endif
 
-#include "cvec.h"
-#include "matrix4.h"
-#include "geometrymaker.h"
-#include "ppm.h"
-#include "glsupport.h"
-#include "rigtform.h"
 #include "MySdlApplication.h"
+#include "RigidBody.h"
 
 using namespace std;
 using namespace tr1;
@@ -42,8 +26,8 @@ static Matrix4 makeProjectionMatrix();
 enum { DIFFUSE, SOLID, TEXTURE, NORMAL, ANISOTROPY, CUBE, SHINY };
 
 // Constants
+const bool MySdlApplication::G_GL2_COMPATIBLE = false;
 static const float G_CAM_ROTATION = 1;
-static const bool G_GL2_COMPATIBLE = false; //Texture doesn't render in GL2 mode for some reason
 static const float G_FRUST_MIN_FOV = 60.0;  //A minimal of 60 degree field of view
 static const unsigned char* KB_STATE = NULL;
 static const int G_NUM_OF_OBJECTS = 2; //Number of objects to be drawn
@@ -90,9 +74,6 @@ static float g_frustFovY = G_FRUST_MIN_FOV; // FOV in y direction
 
 static shared_ptr<GlTexture> g_tex0;
 
-// Macro used to obtain relative offset of a field within a struct
-#define FIELD_OFFSET(StructType, field) &(((StructType *)0)->field)
-
 /*-----------------------------------------------*/
 
 // --------- Scene
@@ -106,329 +87,163 @@ static Cvec3f g_objectColors[1] = { Cvec3f(1, 0, 0) };
 
 ///////////////// END OF G L O B A L S ///////////////////////
 
-struct ShaderState
-{
-   GlProgram program;
-
-   // Handles to uniform variables
-   GLint h_uLight, h_uLight2;
-   GLint h_uProjMatrix;
-   GLint h_uModelViewMatrix;
-   GLint h_uNormalMatrix;
-   GLint h_uColor;
-   GLint h_uTexUnit0;
-   GLint h_uTexUnit1;
-   GLint h_uTexUnit2;
-   GLint h_uSamples;
-   GLint h_uSampledx;
-   GLint h_uSampledy;
-
-   // Handles to vertex attributes
-   GLint h_aPosition;
-   GLint h_aNormal;
-   GLint h_aTangent;
-   GLint h_aTexCoord0;
-   GLint h_aTexCoord1;
-   GLint h_aTexCoord2;
-
-   /*-----------------------------------------------*/
-   ShaderState(const char* vsfn, const char* fsfn)
-   {
-      /*	PURPOSE:		Constructor for ShaderState Object
-         RECEIVES:	vsfn - Vertex Shader Filename
-         fsfn - Fragement Shader Filename
-         RETURNS:		ShaderState object
-         REMARKS:
-         */
-
-      readAndCompileShader(program, vsfn, fsfn);
-
-      const GLuint h = program; // short hand
-
-      // Retrieve handles to uniform variables
-      h_uLight = safe_glGetUniformLocation(h, "uLight");
-      h_uLight2 = safe_glGetUniformLocation(h, "uLight2");
-      h_uProjMatrix = safe_glGetUniformLocation(h, "uProjMatrix");
-      h_uModelViewMatrix = safe_glGetUniformLocation(h, "uModelViewMatrix");
-      h_uNormalMatrix = safe_glGetUniformLocation(h, "uNormalMatrix");
-      h_uColor = safe_glGetUniformLocation(h, "uColor");
-      h_uTexUnit0 = safe_glGetUniformLocation(h, "uTexUnit0");
-      h_uTexUnit1 = safe_glGetUniformLocation(h, "uTexUnit1");
-      h_uTexUnit2 = safe_glGetUniformLocation(h, "uTexUnit2");
-      h_uSamples = safe_glGetUniformLocation(h, "uSamples");
-      h_uSampledx = safe_glGetUniformLocation(h, "uSampledx");
-      h_uSampledy = safe_glGetUniformLocation(h, "uSampledy");
-
-      // Retrieve handles to vertex attributes
-      h_aPosition = safe_glGetAttribLocation(h, "aPosition");
-      h_aNormal = safe_glGetAttribLocation(h, "aNormal");
-      h_aTangent = safe_glGetAttribLocation(h, "aTangent");
-      h_aTexCoord0 = safe_glGetAttribLocation(h, "aTexCoord0");
-      h_aTexCoord1 = safe_glGetAttribLocation(h, "aTexCoord1");
-      h_aTexCoord2 = safe_glGetAttribLocation(h, "aTexCoord2");
-
-      if (!G_GL2_COMPATIBLE)
-         glBindFragDataLocation(h, 0, "fragColor");
-      checkGlErrors();
-   }
-   /*-----------------------------------------------*/
-};
 /*-----------------------------------------------*/
-struct Geometry
-{
-   GlBufferObject vbo, texVbo, ibo;
-   int vboLen, iboLen;
-
-   /*-----------------------------------------------*/
-   Geometry(GenericVertex *vtx, unsigned short *idx, int vboLen, int iboLen)
-   {
-      /*	PURPOSE:		Constructor for Geometry Object
-         RECEIVES:	vtx - vertex buffer array of Generic vertex
-         idx - Index buffer array
-         vboLen - Length of Vertex buffer array
-         iboLen - Length of Index Buffer array
-         RETURNS:		Geometry object
-         REMARKS:
-         */
-
-      this->vboLen = vboLen;
-      this->iboLen = iboLen;
-
-      // Now create the VBO and IBO
-      glBindBuffer(GL_ARRAY_BUFFER, vbo);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(GenericVertex)* vboLen, vtx,
-         GL_STATIC_DRAW);
-
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-      glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short)* iboLen,
-         idx, GL_STATIC_DRAW);
-
-      glBindBuffer(GL_ARRAY_BUFFER, texVbo);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(GenericVertex)* vboLen, vtx,
-         GL_STATIC_DRAW);
-   }
-   /*-----------------------------------------------*/
-   void draw(const ShaderState& curSS)
-   {
-      /*	PURPOSE:		Draws an OpenGL object
-         RECEIVES:	curSS - ShaderState to be used when drawing
-         RETURNS:
-         REMARKS:
-         */
-
-      // Enable the attributes used by our shader
-      safe_glEnableVertexAttribArray(curSS.h_aPosition);
-      safe_glEnableVertexAttribArray(curSS.h_aNormal);
-      safe_glEnableVertexAttribArray(curSS.h_aTexCoord0);
-      safe_glEnableVertexAttribArray(curSS.h_aTexCoord1);
-      safe_glEnableVertexAttribArray(curSS.h_aTexCoord2);
-
-      // bind vbo
-      glBindBuffer(GL_ARRAY_BUFFER, vbo);
-      safe_glVertexAttribPointer(curSS.h_aPosition, 3, GL_FLOAT, GL_FALSE,
-         sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, pos));
-      safe_glVertexAttribPointer(curSS.h_aNormal, 3, GL_FLOAT, GL_FALSE,
-         sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, normal));
-      glBindBuffer(GL_ARRAY_BUFFER, texVbo);
-      safe_glVertexAttribPointer(curSS.h_aTexCoord0, 2, GL_FLOAT, GL_FALSE,
-         sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
-      safe_glVertexAttribPointer(curSS.h_aTexCoord1, 2, GL_FLOAT, GL_FALSE,
-         sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
-      safe_glVertexAttribPointer(curSS.h_aTexCoord2, 2, GL_FLOAT, GL_FALSE,
-         sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
-
-      // bind ibo
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-
-      // draw!
-      glDrawElements(GL_TRIANGLES, iboLen, GL_UNSIGNED_SHORT, 0);
-
-      // Disable the attributes used by our shader
-      safe_glDisableVertexAttribArray(curSS.h_aPosition);
-      safe_glDisableVertexAttribArray(curSS.h_aNormal);
-      safe_glDisableVertexAttribArray(curSS.h_aTexCoord0);
-      safe_glDisableVertexAttribArray(curSS.h_aTexCoord1);
-      safe_glDisableVertexAttribArray(curSS.h_aTexCoord2);
-   }
-   /*-----------------------------------------------*/
-   void draw(const ShaderState& curSS, Matrix4 MVM)
-   {
-      /*	PURPOSE:		Draws an OpenGL object with a specific Model View Matrix
-         RECEIVES:	curSS - ShaderState to be used when drawing
-         MVM - Model View Matrix to be drawn against
-         RETURNS:
-         REMARKS:
-         */
-
-      Matrix4 NMVM = normalMatrix(MVM);
-
-      GLfloat glmatrix[16];
-      MVM.writeToColumnMajorMatrix(glmatrix); // send MVM
-      safe_glUniformMatrix4fv(curSS.h_uModelViewMatrix, glmatrix);
-
-      NMVM.writeToColumnMajorMatrix(glmatrix); // send NMVM
-      safe_glUniformMatrix4fv(curSS.h_uNormalMatrix, glmatrix);
-
-      draw(curSS);
-   }
-};
+//struct RigidBody
+//{
+//   RigTForm rtf;
+//   Matrix4 scale;
+//   RigidBody **children;
+//   Cvec3 color;
+//   Geometry *geom;
+//   string name;
+//   int numOfChildren;
+//   int material;
+//   bool isVisible;
+//   bool isChildVisible;
+//
+//   RigidBody()
+//   {
+//      /*	PURPOSE:		Constructor for RigidBody object
+//         RECEIVES:
+//         RETURNS:		RigidBody object
+//         REMARKS:
+//         */
+//
+//      rtf = RigTForm();
+//      scale = Matrix4();
+//      children = NULL;
+//      numOfChildren = 0;
+//      color = Cvec3(.5, .5, .5);
+//      geom = NULL;
+//      isVisible = true;
+//      isChildVisible = true;
+//      material = SOLID;
+//   }
+//
+//   ~RigidBody()
+//   {
+//      /*	PURPOSE:		Destructor for RigidBody object
+//         RECEIVES:
+//         RETURNS:
+//         REMARKS:
+//         */
+//
+//      for (int i = 0; i < numOfChildren; i++)
+//      {
+//         delete children[i];
+//      }
+//      delete children;
+//      delete geom;
+//   }
+//
+//   RigidBody(RigTForm rtf_, Matrix4 scale_, RigidBody **children_, Geometry *geom_, Cvec3 color_, int material_)
+//   {
+//      /*	PURPOSE:		Constructor for RigidBody object
+//         RECEIVES:	rtf_ - RigTForm for the RigidBody
+//         scale_ - Matrix representing RigidBody scale
+//         children_ - Pointer to an array of Child RigidBody objects
+//         geom_ - Geometry type of object
+//         color_ - Color to draw object
+//         material_ - Type of shader material to draw object with
+//         RETURNS:		RigidBody object
+//         REMARKS:
+//         */
+//
+//      rtf = rtf_;
+//      scale = scale_;
+//      children = children_;
+//      numOfChildren = 0;
+//      geom = geom_;
+//      color = color_;
+//      isVisible = true;
+//      material = material_;
+//   }
+//
+//   void drawRigidBody(RigTForm invEyeRbt)
+//   {
+//      /*	PURPOSE:		Draw the RigidBody object
+//         RECEIVES:	invEyeRbt -  Inverse Eye Frame to use
+//         RETURNS:
+//         REMARKS:		Recursive starter function
+//         */
+//
+//      RigTForm respectFrame = invEyeRbt;
+//      draw(respectFrame, Matrix4());
+//   }
+//
+//   void draw(RigTForm respectFrame_, Matrix4 respectScale_)
+//   {
+//      /*	PURPOSE:		Draws the RigidBody with respect to parent object
+//         RECEIVES:	respectFrame_ - Parent Object frame
+//         respectScale_ - Parent Object scale
+//         RETURNS:
+//         REMARKS:		 Recursive function
+//         */
+//
+//      const ShaderState& curSS = setupShader(material);
+//
+//      safe_glUniform3f(curSS.h_uColor, (GLfloat)color[0], (GLfloat)color[1], (GLfloat)color[2]);
+//
+//      // Draw Parent
+//      RigTForm respectFrame = respectFrame_ * rtf;
+//      Matrix4 respectScale = respectScale_ * scale;
+//      Matrix4 MVM = RigTForm::makeTRmatrix(respectFrame, respectScale);
+//
+//      if (isVisible)
+//      {
+//         if (geom != NULL)
+//            geom->draw(curSS, MVM);
+//      }
+//
+//      //Draw Children
+//      if (isChildVisible)
+//      {
+//         for (int i = 0; i < numOfChildren; i++)
+//         {
+//            children[i]->draw(respectFrame, respectScale);
+//         }
+//      }
+//
+//   }
+//
+//   void draw(Matrix4 respectFrame_)
+//   {
+//      /*	PURPOSE:		Draws the RigidBody with respect to parent Frame
+//         RECEIVES:	respectFrame_ - Parent Object frame
+//         RETURNS:
+//         REMARKS:		Recursive Function
+//         */
+//
+//      const ShaderState& curSS = setupShader(material);
+//      safe_glUniform3f(curSS.h_uColor, (GLfloat)color[0], (GLfloat)color[1], (GLfloat)color[2]);
+//
+//      //Draw parent
+//      Matrix4 respectFrame = respectFrame_ * RigTForm::makeTRmatrix(rtf, scale);
+//      Matrix4 MVM = respectFrame;
+//
+//      if (isVisible)
+//      {
+//         if (geom != NULL)
+//            geom->draw(curSS, MVM);
+//      }
+//
+//      //Draw Children
+//      for (int i = 0; i < numOfChildren; i++)
+//      {
+//         children[i]->draw(respectFrame);
+//      }
+//   }
+//};
 /*-----------------------------------------------*/
-struct RigidBody
-{
-   RigTForm rtf;
-   Matrix4 scale;
-   RigidBody **children;
-   Cvec3 color;
-   Geometry *geom;
-   string name;
-   int numOfChildren;
-   int material;
-   bool isVisible;
-   bool isChildVisible;
-
-   RigidBody()
-   {
-      /*	PURPOSE:		Constructor for RigidBody object
-         RECEIVES:
-         RETURNS:		RigidBody object
-         REMARKS:
-         */
-
-      rtf = RigTForm();
-      scale = Matrix4();
-      children = NULL;
-      numOfChildren = 0;
-      color = Cvec3(.5, .5, .5);
-      geom = NULL;
-      isVisible = true;
-      isChildVisible = true;
-      material = SOLID;
-   }
-
-   ~RigidBody()
-   {
-      /*	PURPOSE:		Destructor for RigidBody object
-         RECEIVES:
-         RETURNS:
-         REMARKS:
-         */
-
-      for (int i = 0; i < numOfChildren; i++)
-      {
-         delete children[i];
-      }
-      delete children;
-      delete geom;
-   }
-
-   RigidBody(RigTForm rtf_, Matrix4 scale_, RigidBody **children_, Geometry *geom_, Cvec3 color_, int material_)
-   {
-      /*	PURPOSE:		Constructor for RigidBody object
-         RECEIVES:	rtf_ - RigTForm for the RigidBody
-         scale_ - Matrix representing RigidBody scale
-         children_ - Pointer to an array of Child RigidBody objects
-         geom_ - Geometry type of object
-         color_ - Color to draw object
-         material_ - Type of shader material to draw object with
-         RETURNS:		RigidBody object
-         REMARKS:
-         */
-
-      rtf = rtf_;
-      scale = scale_;
-      children = children_;
-      numOfChildren = 0;
-      geom = geom_;
-      color = color_;
-      isVisible = true;
-      material = material_;
-   }
-
-   void drawRigidBody(RigTForm invEyeRbt)
-   {
-      /*	PURPOSE:		Draw the RigidBody object
-         RECEIVES:	invEyeRbt -  Inverse Eye Frame to use
-         RETURNS:
-         REMARKS:		Recursive starter function
-         */
-
-      RigTForm respectFrame = invEyeRbt;
-      draw(respectFrame, Matrix4());
-   }
-
-   void draw(RigTForm respectFrame_, Matrix4 respectScale_)
-   {
-      /*	PURPOSE:		Draws the RigidBody with respect to parent object
-         RECEIVES:	respectFrame_ - Parent Object frame
-         respectScale_ - Parent Object scale
-         RETURNS:
-         REMARKS:		 Recursive function
-         */
-
-      const ShaderState& curSS = setupShader(material);
-
-      safe_glUniform3f(curSS.h_uColor, (GLfloat)color[0], (GLfloat)color[1], (GLfloat)color[2]);
-
-      // Draw Parent
-      RigTForm respectFrame = respectFrame_ * rtf;
-      Matrix4 respectScale = respectScale_ * scale;
-      Matrix4 MVM = RigTForm::makeTRmatrix(respectFrame, respectScale);
-
-      if (isVisible)
-      {
-         if (geom != NULL)
-            geom->draw(curSS, MVM);
-      }
-
-      //Draw Children
-      if (isChildVisible)
-      {
-         for (int i = 0; i < numOfChildren; i++)
-         {
-            children[i]->draw(respectFrame, respectScale);
-         }
-      }
-
-   }
-
-   void draw(Matrix4 respectFrame_)
-   {
-      /*	PURPOSE:		Draws the RigidBody with respect to parent Frame
-         RECEIVES:	respectFrame_ - Parent Object frame
-         RETURNS:
-         REMARKS:		Recursive Function
-         */
-
-      const ShaderState& curSS = setupShader(material);
-      safe_glUniform3f(curSS.h_uColor, (GLfloat)color[0], (GLfloat)color[1], (GLfloat)color[2]);
-
-      //Draw parent
-      Matrix4 respectFrame = respectFrame_ * RigTForm::makeTRmatrix(rtf, scale);
-      Matrix4 MVM = respectFrame;
-
-      if (isVisible)
-      {
-         if (geom != NULL)
-            geom->draw(curSS, MVM);
-      }
-
-      //Draw Children
-      for (int i = 0; i < numOfChildren; i++)
-      {
-         children[i]->draw(respectFrame);
-      }
-   }
-};
-/*-----------------------------------------------*/
-static vector<shared_ptr<ShaderState> > g_shaderStates;
+static vector<shared_ptr<MySdlApplication::ShaderState> > g_shaderStates;
 // our global shader states
 // Vertex buffer and index buffer associated with the ground and cube geometry
-static shared_ptr<Geometry> g_ground, g_cube, g_sphere, g_triangle;
+static shared_ptr<MySdlApplication::Geometry> g_ground, g_cube, g_sphere, g_triangle;
 static RigidBody g_rigidBodies[G_NUM_OF_OBJECTS]; // Array that holds each Rigid Body Object
 /*-----------------------------------------------*/
-static Geometry* initCube()
+static MySdlApplication::Geometry* initCube()
 {
-   /*	PURPOSE:		Sets up index and vertex buffers and calls geometrymaker for a cube
+   /*	PURPOSE:		Sets up index and vertex buffers and calls Geometrymaker for a cube
       RECEIVES:
       RETURNS:		Geometry - returns Geometry object
       REMARKS:
@@ -442,10 +257,10 @@ static Geometry* initCube()
    vector<unsigned short> idx(ibLen);
 
    makeCube(1, vtx.begin(), idx.begin());
-   return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
+   return new MySdlApplication::Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
 /*-----------------------------------------------*/
-static Geometry* initSpheres()
+static MySdlApplication::Geometry* initSpheres()
 {
    /*	PURPOSE:		Sets up index and vertex buffers and calls geometrymaker for a sphere
       RECEIVES:
@@ -464,10 +279,10 @@ static Geometry* initSpheres()
    vector<unsigned short> idx(ibLen);
 
    makeSphere(radius, slices, stacks, vtx.begin(), idx.begin());
-   return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
+   return new MySdlApplication::Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
 /*-----------------------------------------------*/
-static Geometry* initCylinders()
+static MySdlApplication::Geometry* initCylinders()
 {
    /*	PURPOSE:		Sets up index and vertex buffers and calls geometrymaker for a cylinder
       RECEIVES:
@@ -486,10 +301,10 @@ static Geometry* initCylinders()
    vector<unsigned short> idx(ibLen);
 
    makeCylinder(slices, radius, height, vtx.begin(), idx.begin());
-   return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
+   return new MySdlApplication::Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
 /*-----------------------------------------------*/
-static Geometry* initPlane()
+static MySdlApplication::Geometry* initPlane()
 {
    /*	PURPOSE:		Sets up index and vertex buffers and calls geometrymaker for a plane
       RECEIVES:
@@ -505,7 +320,7 @@ static Geometry* initPlane()
    vector<unsigned short> idx(ibLen);
 
    makePlane(1, vtx.begin(), idx.begin());
-   return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
+   return new MySdlApplication::Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
 /*-----------------------------------------------*/
 static RigidBody* buildCube()
@@ -823,7 +638,7 @@ static void initGround()
       GenericVertex(G_GROUND_SIZE, G_GROUND_Y, -G_GROUND_SIZE, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0),
    };
    unsigned short idx[] = { 0, 1, 2, 0, 2, 3 };
-   g_ground.reset(new Geometry(&vtx[0], &idx[0], 4, 6));
+   g_ground.reset(new MySdlApplication::Geometry(&vtx[0], &idx[0], 4, 6));
 }
 /*-----------------------------------------------*/
 Uint32 animateLander(Uint32 interval, void *param)
@@ -903,7 +718,7 @@ Uint32 animateLander(Uint32 interval, void *param)
    return interval;
 }
 /*-----------------------------------------------*/
-static void sendProjectionMatrix(const ShaderState& curSS,
+static void sendProjectionMatrix(const MySdlApplication::ShaderState& curSS,
    const Matrix4& projMatrix)
 {
    /*	PURPOSE:		Sends projection matrix to OpenGL for shader use
@@ -919,7 +734,7 @@ static void sendProjectionMatrix(const ShaderState& curSS,
    safe_glUniformMatrix4fv(curSS.h_uProjMatrix, glmatrix);
 }
 /*-----------------------------------------------*/
-static void sendModelViewNormalMatrix(const ShaderState& curSS,
+static void sendModelViewNormalMatrix(const MySdlApplication::ShaderState& curSS,
    const Matrix4& MVM, const Matrix4& NMVM)
 {
    /*	PURPOSE:		Sends the regular and normal Model View Matrix to OpenGL for shader use
@@ -1073,7 +888,7 @@ static void initGLState()
    glEnable(GL_DEPTH_TEST);
    glDepthFunc(GL_GREATER);
    glReadBuffer(GL_BACK);
-   if (!G_GL2_COMPATIBLE)
+   if (!MySdlApplication::G_GL2_COMPATIBLE)
       glEnable(GL_FRAMEBUFFER_SRGB);
 }
 /*-----------------------------------------------*/
@@ -1088,14 +903,14 @@ static void initShaders()
    g_shaderStates.resize(G_NUM_SHADERS);
    for (int i = 0; i < G_NUM_SHADERS; ++i)
    {
-      if (G_GL2_COMPATIBLE)
+      if (MySdlApplication::G_GL2_COMPATIBLE)
       {
-         g_shaderStates[i].reset(new ShaderState(G_SHADER_FILES_GL2[i][0],
+         g_shaderStates[i].reset(new MySdlApplication::ShaderState(G_SHADER_FILES_GL2[i][0],
             G_SHADER_FILES_GL2[i][1]));
       }
       else
       {
-         g_shaderStates[i].reset(new ShaderState(G_SHADER_FILES[i][0],
+         g_shaderStates[i].reset(new MySdlApplication::ShaderState(G_SHADER_FILES[i][0],
             G_SHADER_FILES[i][1]));
       }
    }
@@ -1109,7 +924,7 @@ static void initGeometry()
       REMARKS:
       */
 
-   initGround();
+   //initGround();
    initLander();
 }
 /*-----------------------------------------------*/
@@ -1240,7 +1055,7 @@ static void loadSphereNormalTexture(GLuint type, GLuint texHandle)
 
    glActiveTexture(type);
    glBindTexture(GL_TEXTURE_2D, texHandle);
-   glTexImage2D(GL_TEXTURE_2D, 0, G_GL2_COMPATIBLE ? GL_RGB : GL_SRGB, width,
+   glTexImage2D(GL_TEXTURE_2D, 0, MySdlApplication::G_GL2_COMPATIBLE ? GL_RGB : GL_SRGB, width,
       height, 0, GL_RGB, GL_UNSIGNED_BYTE, &pixels[0]);
    checkGlErrors();
 }
@@ -1297,7 +1112,7 @@ static void drawStuff()
       */
 
    // short hand for current shader state
-   const ShaderState& curSS = *g_shaderStates[g_activeShader];
+   const MySdlApplication::ShaderState& curSS = *g_shaderStates[g_activeShader];
 
    // build & send proj. matrix to vshader
    const Matrix4 projmat = makeProjectionMatrix();
@@ -1332,7 +1147,7 @@ static void drawStuff()
       g_rigidBodies[i].drawRigidBody(invEyeRbt);
 }
 /*-----------------------------------------------*/
-static const ShaderState& setupShader(int material)
+const MySdlApplication::ShaderState& MySdlApplication::setupShader(int material)
 {
    /*	PURPOSE:		Sets up Shader based on material
       RECEIVES:	material - enum value of shader to be used
@@ -1342,7 +1157,7 @@ static const ShaderState& setupShader(int material)
 
    // Current Shader State
    glUseProgram(g_shaderStates[material]->program);
-   const ShaderState& curSS = *g_shaderStates[material];
+   const MySdlApplication::ShaderState& curSS = *g_shaderStates[material];
 
    safe_glUniform1i(curSS.h_uTexUnit0, 0);
    //safe_glUniform1i(curSS.h_uTexUnit1, 1);
@@ -1685,22 +1500,11 @@ int main(int argc, const char* argv[])
    return application.onExecute();
 }
 
-//Coding Guidelines template (REMOVE before Submission)
 
-/******************************************************
-* Copyright (c):   1994, All Rights Reserved.
-* Project:         CS 46A Homework #4
-* File:            sortcomp.cpp
-* Purpose:         compare timings for sort routines
-* Start date:      4/2/97
-* Programmer:      John Chen
-*
-******************************************************
-*/
-
+// TODO (REMOVE before Submission)
+//Coding Guidelines template 
 
 /*-----------------------------------------------*/
-
 
 
 /*	PURPOSE:		What does this function do? (must be present)

@@ -79,6 +79,10 @@
     <ClCompile Include="glsupport.cpp" />
     <ClCompile Include="MySdlApplication.cpp" />
     <ClCompile Include="ppm.cpp" />
+    <ClCompile Include="RigidBody.cpp" />
+    <ClCompile Include="WE_Edge.cpp" />
+    <ClCompile Include="WE_Face.cpp" />
+    <ClCompile Include="WE_Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cvec.h" />
@@ -87,7 +91,11 @@
     <ClInclude Include="matrix4.h" />
     <ClInclude Include="MySdlApplication.h" />
     <ClInclude Include="quat.h" />
+    <ClInclude Include="RigidBody.h" />
     <ClInclude Include="rigtform.h" />
+    <ClInclude Include="WE_Edge.h" />
+    <ClInclude Include="WE_Face.h" />
+    <ClInclude Include="WE_Vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\anisotropy-gl3.fshader" />
