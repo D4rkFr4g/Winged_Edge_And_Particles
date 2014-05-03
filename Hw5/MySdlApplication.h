@@ -26,195 +26,204 @@
 // Macro used to obtain relative offset of a field within a struct
 #define FIELD_OFFSET(StructType, field) &(((StructType *)0)->field)
 
+class WE_Edge;
+class WE_Vertex;
+class WE_Face;
+
 class MySdlApplication
 {
-    private:
-        bool running;
-        SDL_Window* display;
-        void keyboard(const char * key);
-        void mouse(SDL_MouseButtonEvent button);
-        void motion(const int x, const int y);
+private:
+   bool running;
+   SDL_Window* display;
+   void keyboard(const char * key);
+   void mouse(SDL_MouseButtonEvent button);
+   void motion(const int x, const int y);
 
-    public:
-		MySdlApplication();
-        int onExecute();
-        bool onInit();
-		void onEvent(SDL_Event* Event);
-        void keyboard();
-        void onLoop();
-        void onRender();
-        void onCleanup();
-        
-        static const bool G_GL2_COMPATIBLE;// = false; //Texture doesn't render in GL2 mode for some reason
+public:
+   MySdlApplication();
+   int onExecute();
+   bool onInit();
+   void onEvent(SDL_Event* Event);
+   void keyboard();
+   void onLoop();
+   void onRender();
+   void onCleanup();
 
-        struct ShaderState
-        {
-           GlProgram program;
+   static const bool G_GL2_COMPATIBLE;// = false; //Texture doesn't render in GL2 mode for some reason
 
-           // Handles to uniform variables
-           GLint h_uLight, h_uLight2;
-           GLint h_uProjMatrix;
-           GLint h_uModelViewMatrix;
-           GLint h_uNormalMatrix;
-           GLint h_uColor;
-           GLint h_uTexUnit0;
-           GLint h_uTexUnit1;
-           GLint h_uTexUnit2;
-           GLint h_uSamples;
-           GLint h_uSampledx;
-           GLint h_uSampledy;
+   struct ShaderState
+   {
+      GlProgram program;
 
-           // Handles to vertex attributes
-           GLint h_aPosition;
-           GLint h_aNormal;
-           GLint h_aTangent;
-           GLint h_aTexCoord0;
-           GLint h_aTexCoord1;
-           GLint h_aTexCoord2;
+      // Handles to uniform variables
+      GLint h_uLight, h_uLight2;
+      GLint h_uProjMatrix;
+      GLint h_uModelViewMatrix;
+      GLint h_uNormalMatrix;
+      GLint h_uColor;
+      GLint h_uTexUnit0;
+      GLint h_uTexUnit1;
+      GLint h_uTexUnit2;
+      GLint h_uSamples;
+      GLint h_uSampledx;
+      GLint h_uSampledy;
 
-           /*-----------------------------------------------*/
-           ShaderState(const char* vsfn, const char* fsfn)
-           {
-              /*	PURPOSE:		Constructor for ShaderState Object
-              RECEIVES:	vsfn - Vertex Shader Filename
-              fsfn - Fragement Shader Filename
-              RETURNS:		ShaderState object
-              REMARKS:
-              */
+      // Handles to vertex attributes
+      GLint h_aPosition;
+      GLint h_aNormal;
+      GLint h_aTangent;
+      GLint h_aTexCoord0;
+      GLint h_aTexCoord1;
+      GLint h_aTexCoord2;
 
-              readAndCompileShader(program, vsfn, fsfn);
+      /*-----------------------------------------------*/
+      ShaderState(const char* vsfn, const char* fsfn)
+      {
+         /*	PURPOSE:		Constructor for ShaderState Object
+         RECEIVES:	vsfn - Vertex Shader Filename
+         fsfn - Fragement Shader Filename
+         RETURNS:		ShaderState object
+         REMARKS:
+         */
 
-              const GLuint h = program; // short hand
+         readAndCompileShader(program, vsfn, fsfn);
 
-              // Retrieve handles to uniform variables
-              h_uLight = safe_glGetUniformLocation(h, "uLight");
-              h_uLight2 = safe_glGetUniformLocation(h, "uLight2");
-              h_uProjMatrix = safe_glGetUniformLocation(h, "uProjMatrix");
-              h_uModelViewMatrix = safe_glGetUniformLocation(h, "uModelViewMatrix");
-              h_uNormalMatrix = safe_glGetUniformLocation(h, "uNormalMatrix");
-              h_uColor = safe_glGetUniformLocation(h, "uColor");
-              h_uTexUnit0 = safe_glGetUniformLocation(h, "uTexUnit0");
-              h_uTexUnit1 = safe_glGetUniformLocation(h, "uTexUnit1");
-              h_uTexUnit2 = safe_glGetUniformLocation(h, "uTexUnit2");
-              h_uSamples = safe_glGetUniformLocation(h, "uSamples");
-              h_uSampledx = safe_glGetUniformLocation(h, "uSampledx");
-              h_uSampledy = safe_glGetUniformLocation(h, "uSampledy");
+         const GLuint h = program; // short hand
 
-              // Retrieve handles to vertex attributes
-              h_aPosition = safe_glGetAttribLocation(h, "aPosition");
-              h_aNormal = safe_glGetAttribLocation(h, "aNormal");
-              h_aTangent = safe_glGetAttribLocation(h, "aTangent");
-              h_aTexCoord0 = safe_glGetAttribLocation(h, "aTexCoord0");
-              h_aTexCoord1 = safe_glGetAttribLocation(h, "aTexCoord1");
-              h_aTexCoord2 = safe_glGetAttribLocation(h, "aTexCoord2");
+         // Retrieve handles to uniform variables
+         h_uLight = safe_glGetUniformLocation(h, "uLight");
+         h_uLight2 = safe_glGetUniformLocation(h, "uLight2");
+         h_uProjMatrix = safe_glGetUniformLocation(h, "uProjMatrix");
+         h_uModelViewMatrix = safe_glGetUniformLocation(h, "uModelViewMatrix");
+         h_uNormalMatrix = safe_glGetUniformLocation(h, "uNormalMatrix");
+         h_uColor = safe_glGetUniformLocation(h, "uColor");
+         h_uTexUnit0 = safe_glGetUniformLocation(h, "uTexUnit0");
+         h_uTexUnit1 = safe_glGetUniformLocation(h, "uTexUnit1");
+         h_uTexUnit2 = safe_glGetUniformLocation(h, "uTexUnit2");
+         h_uSamples = safe_glGetUniformLocation(h, "uSamples");
+         h_uSampledx = safe_glGetUniformLocation(h, "uSampledx");
+         h_uSampledy = safe_glGetUniformLocation(h, "uSampledy");
 
-              if (!G_GL2_COMPATIBLE)
-                 glBindFragDataLocation(h, 0, "fragColor");
-              checkGlErrors();
-           }
-           /*-----------------------------------------------*/
-        };
+         // Retrieve handles to vertex attributes
+         h_aPosition = safe_glGetAttribLocation(h, "aPosition");
+         h_aNormal = safe_glGetAttribLocation(h, "aNormal");
+         h_aTangent = safe_glGetAttribLocation(h, "aTangent");
+         h_aTexCoord0 = safe_glGetAttribLocation(h, "aTexCoord0");
+         h_aTexCoord1 = safe_glGetAttribLocation(h, "aTexCoord1");
+         h_aTexCoord2 = safe_glGetAttribLocation(h, "aTexCoord2");
 
-        struct Geometry
-        {
-           GlBufferObject vbo, texVbo, ibo;
-           int vboLen, iboLen;
+         if (!G_GL2_COMPATIBLE)
+            glBindFragDataLocation(h, 0, "fragColor");
+         checkGlErrors();
+      }
+      /*-----------------------------------------------*/
+   };
 
-           /*-----------------------------------------------*/
-           Geometry(GenericVertex *vtx, unsigned short *idx, int vboLen, int iboLen)
-           {
-              /*	PURPOSE:		Constructor for Geometry Object
-              RECEIVES:	vtx - vertex buffer array of Generic vertex
-              idx - Index buffer array
-              vboLen - Length of Vertex buffer array
-              iboLen - Length of Index Buffer array
-              RETURNS:		Geometry object
-              REMARKS:
-              */
+   struct Geometry
+   {
+      GlBufferObject vbo, texVbo, ibo;
+      int vboLen, iboLen;
 
-              this->vboLen = vboLen;
-              this->iboLen = iboLen;
+      /*-----------------------------------------------*/
+      Geometry(GenericVertex *vtx, unsigned short *idx, int vboLen, int iboLen)
+      {
+         /*	PURPOSE:		Constructor for Geometry Object
+         RECEIVES:	vtx - vertex buffer array of Generic vertex
+         idx - Index buffer array
+         vboLen - Length of Vertex buffer array
+         iboLen - Length of Index Buffer array
+         RETURNS:		Geometry object
+         REMARKS:
+         */
 
-              // Now create the VBO and IBO
-              glBindBuffer(GL_ARRAY_BUFFER, vbo);
-              glBufferData(GL_ARRAY_BUFFER, sizeof(GenericVertex)* vboLen, vtx,
-                 GL_STATIC_DRAW);
+         this->vboLen = vboLen;
+         this->iboLen = iboLen;
 
-              glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-              glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short)* iboLen,
-                 idx, GL_STATIC_DRAW);
+         // Now create the VBO and IBO
+         glBindBuffer(GL_ARRAY_BUFFER, vbo);
+         glBufferData(GL_ARRAY_BUFFER, sizeof(GenericVertex)* vboLen, vtx,
+            GL_STATIC_DRAW);
 
-              glBindBuffer(GL_ARRAY_BUFFER, texVbo);
-              glBufferData(GL_ARRAY_BUFFER, sizeof(GenericVertex)* vboLen, vtx,
-                 GL_STATIC_DRAW);
-           }
-           /*-----------------------------------------------*/
-           void draw(const ShaderState& curSS, GLenum mode)
-           {
-              /*	PURPOSE:		Draws an OpenGL object
-              RECEIVES:	curSS - ShaderState to be used when drawing
-              RETURNS:
-              REMARKS:
-              */
+         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short)* iboLen,
+            idx, GL_STATIC_DRAW);
 
-              // Enable the attributes used by our shader
-              safe_glEnableVertexAttribArray(curSS.h_aPosition);
-              safe_glEnableVertexAttribArray(curSS.h_aNormal);
-              safe_glEnableVertexAttribArray(curSS.h_aTexCoord0);
-              safe_glEnableVertexAttribArray(curSS.h_aTexCoord1);
-              safe_glEnableVertexAttribArray(curSS.h_aTexCoord2);
+         glBindBuffer(GL_ARRAY_BUFFER, texVbo);
+         glBufferData(GL_ARRAY_BUFFER, sizeof(GenericVertex)* vboLen, vtx,
+            GL_STATIC_DRAW);
+      }
+      /*-----------------------------------------------*/
+      ~Geometry()
+      {
 
-              // bind vbo
-              glBindBuffer(GL_ARRAY_BUFFER, vbo);
-              safe_glVertexAttribPointer(curSS.h_aPosition, 3, GL_FLOAT, GL_FALSE,
-                 sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, pos));
-              safe_glVertexAttribPointer(curSS.h_aNormal, 3, GL_FLOAT, GL_FALSE,
-                 sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, normal));
-              glBindBuffer(GL_ARRAY_BUFFER, texVbo);
-              safe_glVertexAttribPointer(curSS.h_aTexCoord0, 2, GL_FLOAT, GL_FALSE,
-                 sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
-              safe_glVertexAttribPointer(curSS.h_aTexCoord1, 2, GL_FLOAT, GL_FALSE,
-                 sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
-              safe_glVertexAttribPointer(curSS.h_aTexCoord2, 2, GL_FLOAT, GL_FALSE,
-                 sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
+      }
+      /*-----------------------------------------------*/
+      void draw(const ShaderState& curSS, GLenum mode)
+      {
+         /*	PURPOSE:		Draws an OpenGL object
+         RECEIVES:	curSS - ShaderState to be used when drawing
+         RETURNS:
+         REMARKS:
+         */
 
-              // bind ibo
-              glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+         // Enable the attributes used by our shader
+         safe_glEnableVertexAttribArray(curSS.h_aPosition);
+         safe_glEnableVertexAttribArray(curSS.h_aNormal);
+         safe_glEnableVertexAttribArray(curSS.h_aTexCoord0);
+         safe_glEnableVertexAttribArray(curSS.h_aTexCoord1);
+         safe_glEnableVertexAttribArray(curSS.h_aTexCoord2);
 
-              // draw!
-              glDrawElements(mode, iboLen, GL_UNSIGNED_SHORT, 0);
+         // bind vbo
+         glBindBuffer(GL_ARRAY_BUFFER, vbo);
+         safe_glVertexAttribPointer(curSS.h_aPosition, 3, GL_FLOAT, GL_FALSE,
+            sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, pos));
+         safe_glVertexAttribPointer(curSS.h_aNormal, 3, GL_FLOAT, GL_FALSE,
+            sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, normal));
+         glBindBuffer(GL_ARRAY_BUFFER, texVbo);
+         safe_glVertexAttribPointer(curSS.h_aTexCoord0, 2, GL_FLOAT, GL_FALSE,
+            sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
+         safe_glVertexAttribPointer(curSS.h_aTexCoord1, 2, GL_FLOAT, GL_FALSE,
+            sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
+         safe_glVertexAttribPointer(curSS.h_aTexCoord2, 2, GL_FLOAT, GL_FALSE,
+            sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
 
-              // Disable the attributes used by our shader
-              safe_glDisableVertexAttribArray(curSS.h_aPosition);
-              safe_glDisableVertexAttribArray(curSS.h_aNormal);
-              safe_glDisableVertexAttribArray(curSS.h_aTexCoord0);
-              safe_glDisableVertexAttribArray(curSS.h_aTexCoord1);
-              safe_glDisableVertexAttribArray(curSS.h_aTexCoord2);
-           }
-           /*-----------------------------------------------*/
-           void draw(const ShaderState& curSS, Matrix4 MVM, GLenum mode)
-           {
-              /*	PURPOSE:		Draws an OpenGL object with a specific Model View Matrix
-              RECEIVES:	curSS - ShaderState to be used when drawing
-              MVM - Model View Matrix to be drawn against
-              RETURNS:
-              REMARKS:
-              */
+         // bind ibo
+         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 
-              Matrix4 NMVM = normalMatrix(MVM);
+         // draw!
+         glDrawElements(mode, iboLen, GL_UNSIGNED_SHORT, 0);
 
-              GLfloat glmatrix[16];
-              MVM.writeToColumnMajorMatrix(glmatrix); // send MVM
-              safe_glUniformMatrix4fv(curSS.h_uModelViewMatrix, glmatrix);
+         // Disable the attributes used by our shader
+         safe_glDisableVertexAttribArray(curSS.h_aPosition);
+         safe_glDisableVertexAttribArray(curSS.h_aNormal);
+         safe_glDisableVertexAttribArray(curSS.h_aTexCoord0);
+         safe_glDisableVertexAttribArray(curSS.h_aTexCoord1);
+         safe_glDisableVertexAttribArray(curSS.h_aTexCoord2);
+      }
+      /*-----------------------------------------------*/
+      void draw(const ShaderState& curSS, Matrix4 MVM, GLenum mode)
+      {
+         /*	PURPOSE:		Draws an OpenGL object with a specific Model View Matrix
+         RECEIVES:	curSS - ShaderState to be used when drawing
+         MVM - Model View Matrix to be drawn against
+         RETURNS:
+         REMARKS:
+         */
 
-              NMVM.writeToColumnMajorMatrix(glmatrix); // send NMVM
-              safe_glUniformMatrix4fv(curSS.h_uNormalMatrix, glmatrix);
+         Matrix4 NMVM = normalMatrix(MVM);
 
-              draw(curSS, mode);
-           }
-        };
-        
-        static const ShaderState& setupShader(int material);
+         GLfloat glmatrix[16];
+         MVM.writeToColumnMajorMatrix(glmatrix); // send MVM
+         safe_glUniformMatrix4fv(curSS.h_uModelViewMatrix, glmatrix);
+
+         NMVM.writeToColumnMajorMatrix(glmatrix); // send NMVM
+         safe_glUniformMatrix4fv(curSS.h_uNormalMatrix, glmatrix);
+
+         draw(curSS, mode);
+      }
+   };
+
+   static const ShaderState& setupShader(int material);
 };
 
 #endif

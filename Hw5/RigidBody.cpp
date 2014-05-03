@@ -29,13 +29,16 @@ RigidBody::~RigidBody()
    RETURNS:
    REMARKS:
    */
-
+   this;
    for (int i = 0; i < numOfChildren; i++)
    {
-      delete children[i];
+      if (children[i] != NULL)
+         delete children[i];
    }
-   delete children;
-   delete geom;
+   if (children != NULL)
+      delete children;
+   if (geom != NULL)
+      delete geom;
 }
 /*-----------------------------------------------*/
 RigidBody::RigidBody(RigTForm rtf_, Matrix4 scale_, RigidBody **children_, MySdlApplication::Geometry *geom_, Cvec3 color_, int material_)

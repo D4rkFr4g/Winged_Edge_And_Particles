@@ -69,6 +69,7 @@ static int g_mouseClickX, g_mouseClickY; // coordinates for mouse click event
 static int g_activeShader = 0;
 SDL_TimerID g_animationTimer;
 static bool g_isAnimating = false;
+static WE_Vertex* g_EcodTM_Vertex;
 
 static float g_frustFovY = G_FRUST_MIN_FOV; // FOV in y direction
 
@@ -132,6 +133,44 @@ static MySdlApplication::Geometry* initSpheres()
    vector<unsigned short> idx(ibLen);
 
    makeSphere(radius, slices, stacks, vtx.begin(), idx.begin());
+   return new MySdlApplication::Geometry(&vtx[0], &idx[0], vbLen, ibLen);
+}
+/*-----------------------------------------------*/
+static MySdlApplication::Geometry* initPoint()
+{
+   /*	PURPOSE:		Sets up index and vertex buffers and calls geometrymaker for a point
+      RECEIVES:   
+      RETURNS:		Geometry - returns Geometry object representing a point
+      REMARKS:
+   */
+   
+   int ibLen = 1;
+   int vbLen = 1;
+
+   // Temporary storage for plane geometry
+   vector<GenericVertex> vtx(vbLen);
+   vector<unsigned short> idx(ibLen);
+
+   makePoint(vtx.begin(), idx.begin());
+   return new MySdlApplication::Geometry(&vtx[0], &idx[0], vbLen, ibLen);
+}
+/*-----------------------------------------------*/
+static MySdlApplication::Geometry* initLine()
+{
+   /*	PURPOSE:		Sets up index and vertex buffers and calls geometrymaker for a line
+   RECEIVES:
+   RETURNS:		Geometry - returns Geometry object representing a line
+   REMARKS:
+   */
+
+   int ibLen = 2;
+   int vbLen = 2;
+
+   // Temporary storage for plane geometry
+   vector<GenericVertex> vtx(vbLen);
+   vector<unsigned short> idx(ibLen);
+
+   makeLine(vtx.begin(), idx.begin());
    return new MySdlApplication::Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
 /*-----------------------------------------------*/
@@ -212,26 +251,18 @@ static RigidBody* buildCube()
 
 }
 /*-----------------------------------------------*/
-static void initTextureCube()
+static RigidBody* buildEpilepticCubeOfDoomTM()
 {
-   /*	PURPOSE:		Creates and addes a textured cube to the array of RigidBody objects
+   /*	PURPOSE:		Builds a Lander object
       RECEIVES:
-      RETURNS:
-      REMARKS:
+      RETURNS:		RigidBody - Returns RigidBody object containing a Lander
+      REMARKS:		Lander is inside an invisible container object
       */
 
-   RigidBody *cube;
-   cube = buildCube();
-   g_rigidBodies[0] = *cube;
-}
-/*-----------------------------------------------*/
-static RigidBody* buildEgg()
-{
-   /*	PURPOSE:		Builds a Egg object
-      RECEIVES:
-      RETURNS:		RigidBody - Returns RigidBody object containing a cube
-      REMARKS:		Egg is inside an invisible container object
-      */
+   Cvec3 grey = Cvec3(.4, .4, .4);
+   Cvec3 red = Cvec3(1, 0, 0);
+   Cvec3 blue = Cvec3(0, 0, 1);
+   Cvec3 black = Cvec3(0, 0, 0);
 
    float width = 1;
    float height = 1;
@@ -245,233 +276,90 @@ static RigidBody* buildEgg()
    container->isVisible = false;
    container->name = "container";
 
-   // Make Egg
-   rigTemp = RigTForm(Cvec3(0, 0, 0));
-   scaleTemp = Matrix4::makeScale(Cvec3(width, height, thick));
+   // Make Vertices (8)
+   const int numVertices = 8;
+   RigidBody **vertices = new RigidBody*[numVertices];
 
-   RigidBody *egg = new RigidBody(rigTemp, scaleTemp, NULL, initSpheres(), Cvec3(1, 0, 0), TEXTURE);
-   egg->name = "egg";
+   float h = 1.0;
+   Cvec3 points[numVertices] = { Cvec3(-h, h, h), Cvec3(h, h, h), Cvec3(h,h,-h), Cvec3(-h,h,-h),
+      Cvec3(-h, -h, h), Cvec3(h, -h, h), Cvec3(h, -h, -h), Cvec3(-h, -h, -h) };
+
+   scaleTemp = Matrix4::makeScale(Cvec3(2, 2, 2));
+   for (int i = 0; i < numVertices; i++)
+   {
+      rigTemp = RigTForm(points[i]);
+    
+      vertices[i] = new RigidBody(rigTemp, scaleTemp, NULL, initPoint(), red, SOLID);
+      vertices[i]->mode = GL_POINTS;
+   }
+
+   // Make Edges (12)
+   const int numEdges = 12;
+   RigidBody **edges = new RigidBody*[numEdges];
+
+   Cvec3 edgeTranslations[numEdges] = { Cvec3(-h, h, 0), Cvec3(0, h, h), Cvec3(h,h,0), Cvec3(0,h,-h),
+      Cvec3(-h, 0, h), Cvec3(h, 0, h), Cvec3(-h, 0, -h), Cvec3(h, 0, -h),
+      Cvec3(-h, -h, 0), Cvec3(0, -h, h), Cvec3(h, -h, 0), Cvec3(0, -h, -h) };
+   Cvec3 edgeRotations[numEdges] = {Cvec3(0,90,0), Cvec3(0,0,0), Cvec3(0,-90,0), Cvec3(0,180,0),
+      Cvec3(0, 0, 90), Cvec3(0, 0, 90), Cvec3(0, 180, 90), Cvec3(0,180,90),
+      Cvec3(0, 90, 0), Cvec3(0, 0, 0), Cvec3(0, -90, 0), Cvec3(0, 180, 0) };
+
+   for (int i = 0; i < numEdges; i++)
+   {
+      rigTemp = RigTForm(edgeTranslations[i]);
+      rigTemp.setRotation(rigTemp.getRotation() * Quat().makeRotation(edgeRotations[i]));
+      edges[i] = new RigidBody(rigTemp, scaleTemp, NULL, initLine(), black, SOLID);
+      edges[i]->mode = GL_LINES;
+   }
+
+   // Make Faces (6)
+   const int numFaces = 6;
+   RigidBody **faces = new RigidBody*[numFaces];
+
+   Cvec3 faceTranslations[numFaces] = {Cvec3(0,h,0), Cvec3(0,0,h), Cvec3(h,0,0), Cvec3(0,0,-h),
+      Cvec3(-h,0,0), Cvec3(0,-h,0)};
+   Cvec3 faceRotations[numFaces] = {Cvec3(0,0,0), Cvec3(90,0,0), Cvec3(0,0,-90), Cvec3(-90,0,0),
+      Cvec3(0,0,90), Cvec3(180,0,0)};
+
+   for (int i = 0; i < numFaces; i++)
+   {
+      rigTemp = RigTForm(faceTranslations[i]);
+      rigTemp.setRotation(rigTemp.getRotation() * Quat().makeRotation(faceRotations[i]));
+      faces[i] = new RigidBody(rigTemp, scaleTemp, NULL, initPlane(), blue, SOLID);
+      faces[i]->mode = GL_TRIANGLES;
+   }
 
    //Setup Children
-   container->numOfChildren = 1;
+   container->numOfChildren = numVertices + numEdges + numFaces;
    container->children = new RigidBody*[container->numOfChildren];
-   container->children[0] = egg;
+   
+   int i = 0;
+   for (int j = 0; j < numVertices; j++)
+      container->children[i + j] = vertices[j];
+
+   i += numVertices;
+   for (int j = 0; j < numEdges; j++)
+      container->children[i + j] = edges[j];
+
+   i += numEdges;
+   for (int j = 0; j < numFaces; j++)
+      container->children[i + j] = faces[j];
 
    return container;
-
 }
 /*-----------------------------------------------*/
-static void initEgg()
+static void initEpilepticCubeOfDoomTM()
 {
-   /*	PURPOSE:		Creates and adds a textured egg to the array of RigidBody objects
+   /*	PURPOSE:		Creates and adds an Epileptic Cube of DoomTM to the array of RigidBody objects
       RECEIVES:
       RETURNS:
       REMARKS:
       */
 
-   RigidBody *egg;
-   egg = buildEgg();
-   g_rigidBodies[0] = *egg;
-}
-/*-----------------------------------------------*/
-static RigidBody* buildLander()
-{
-   /*	PURPOSE:		Builds a Lander object
-      RECEIVES:
-      RETURNS:		RigidBody - Returns RigidBody object containing a Lander
-      REMARKS:		Lander is inside an invisible container object
-      */
-
-   Cvec3 baseGrey = Cvec3(.4, .4, .4);
-   Cvec3 metalGrey = Cvec3(.9, .9, .9);
-   Cvec3 black = Cvec3(0, 0, 0);
-
-   float width = 1;
-   float height = 1;
-   float thick = 1;
-
-   RigTForm rigTemp = RigTForm(Cvec3(0, 0, 0));
-   Matrix4 scaleTemp = Matrix4();
-
-   // Make container
-   RigidBody *container = new RigidBody(RigTForm(), Matrix4(), NULL, initCube(), Cvec3(0.5, 0.5, 0.5), DIFFUSE);
-   container->isVisible = true;
-   container->name = "container";
-
-   // Make Dome
-   rigTemp = RigTForm(Cvec3(0, 0, 0));
-   scaleTemp = Matrix4::makeScale(Cvec3(width, height, thick));
-
-   RigidBody *dome = new RigidBody(rigTemp, scaleTemp, NULL, initSpheres(), Cvec3(.74, .74, 1), SHINY);
-   dome->name = "dome";
-
-   // Make Base
-   height = 0.6;
-   width = 1.3;
-   thick = 1.3;
-   rigTemp = RigTForm(Cvec3(0, -0.7, -0.3));
-   scaleTemp = Matrix4::makeScale(Cvec3(width, height, thick));
-
-   RigidBody *base = new RigidBody(rigTemp, scaleTemp, NULL, initCylinders(), baseGrey, DIFFUSE);
-   base->name = "base";
-
-   // Make Bottom
-   height = 0.1;
-   width = 1;
-   thick = 1;
-
-   rigTemp = RigTForm(Cvec3(0, -.3, 0));
-   scaleTemp = Matrix4::makeScale(Cvec3(width, height, thick));
-
-   RigidBody *bottom = new RigidBody(rigTemp, scaleTemp, NULL, initSpheres(), baseGrey, DIFFUSE);
-   bottom->name = "bottom";
-
-   // Make Top
-   height = 0.1;
-   width = 1;
-   thick = 1;
-
-   rigTemp = RigTForm(Cvec3(0, 0.3, 0));
-   scaleTemp = Matrix4::makeScale(Cvec3(width, height, thick));
-
-   RigidBody *top = new RigidBody(rigTemp, scaleTemp, NULL, initSpheres(), baseGrey, DIFFUSE);
-   top->name = "top";
-
-   // Make Back
-   height = 1.37;
-   width = 2;
-   thick = 1;
-
-   rigTemp = RigTForm(Cvec3(0, 0.31, -.5));
-   scaleTemp = Matrix4::makeScale(Cvec3(width, height, thick));
-
-   RigidBody *back = new RigidBody(rigTemp, scaleTemp, NULL, initCube(), baseGrey, DIFFUSE);
-   back->name = "back";
-
-   // Make Legs
-   height = 25;
-   width = 0.05;
-   thick = 0.05;
-
-   rigTemp = RigTForm(Cvec3(0, -.8, 0));
-   scaleTemp = Matrix4::makeScale(Cvec3(width, height, thick));
-
-   RigidBody *leg1 = new RigidBody(rigTemp, scaleTemp, NULL, initCylinders(), metalGrey, SHINY);
-   leg1->name = "leg1";
-   RigidBody *leg2 = new RigidBody(rigTemp, scaleTemp, NULL, initCylinders(), metalGrey, SHINY);
-   leg2->name = "leg2";
-   RigidBody *leg3 = new RigidBody(rigTemp, scaleTemp, NULL, initCylinders(), metalGrey, SHINY);
-   leg3->name = "leg3";
-   RigidBody *leg4 = new RigidBody(rigTemp, scaleTemp, NULL, initCylinders(), metalGrey, SHINY);
-   leg4->name = "leg4";
-
-   float x = .6;
-   float y = -.2;
-   float z = .6;
-   leg1->rtf.setTranslation(Cvec3(-x, y, z));
-   leg2->rtf.setTranslation(Cvec3(x, y, z));
-   leg3->rtf.setTranslation(Cvec3(-x, y, -z));
-   leg4->rtf.setTranslation(Cvec3(x, y, -z));
-
-   // Make Feet
-   height = .01;
-   width = 3;
-   thick = 3;
-
-   rigTemp = RigTForm(Cvec3(0, -.75, 0));
-   scaleTemp = Matrix4::makeScale(Cvec3(width, height, thick));
-
-   RigidBody *foot1 = new RigidBody(rigTemp, scaleTemp, NULL, initSpheres(), black, DIFFUSE);
-   foot1->name = "foot1";
-   RigidBody *foot2 = new RigidBody(rigTemp, scaleTemp, NULL, initSpheres(), black, DIFFUSE);
-   foot2->name = "foot2";
-   RigidBody *foot3 = new RigidBody(rigTemp, scaleTemp, NULL, initSpheres(), black, DIFFUSE);
-   foot3->name = "foot3";
-   RigidBody *foot4 = new RigidBody(rigTemp, scaleTemp, NULL, initSpheres(), black, DIFFUSE);
-   foot4->name = "foot4";
-
-   //Make Engine
-   height = 7;
-   width = .3;
-   thick = .3;
-
-   rigTemp = RigTForm(Cvec3(0, -.2, 0));
-   scaleTemp = Matrix4::makeScale(Cvec3(width, height, thick));
-
-   RigidBody *engine = new RigidBody(rigTemp, scaleTemp, NULL, initCylinders(), metalGrey, SHINY);
-   engine->name = "engine";
-
-   //Make Casing
-
-   height = 1;
-   width = 1;
-   thick = 1;
-
-   rigTemp = RigTForm(Cvec3(0, 0, 0));
-   scaleTemp = Matrix4::makeScale(Cvec3(-width, -height, -thick));
-
-   RigidBody *casing = new RigidBody(rigTemp, scaleTemp, NULL, initCylinders(), metalGrey, SHINY);
-   casing->name = "casing";
-
-   //Setup Children
-   container->numOfChildren = 1;
-   container->children = new RigidBody*[container->numOfChildren];
-   container->children[0] = dome;
-
-   dome->numOfChildren = 2;
-   dome->children = new RigidBody*[dome->numOfChildren];
-   dome->children[0] = base;
-   dome->children[1] = back;
-
-   base->numOfChildren = 2;
-   base->children = new RigidBody*[dome->numOfChildren];
-   base->children[0] = bottom;
-   base->children[1] = top;
-
-   bottom->numOfChildren = 5;
-   bottom->children = new RigidBody*[bottom->numOfChildren];
-   bottom->children[0] = engine;
-   bottom->children[1] = leg1;
-   bottom->children[2] = leg2;
-   bottom->children[3] = leg3;
-   bottom->children[4] = leg4;
-
-   leg1->numOfChildren = 1;
-   leg1->children = new RigidBody*[leg1->numOfChildren];
-   leg1->children[0] = foot1;
-
-   leg2->numOfChildren = 1;
-   leg2->children = new RigidBody*[leg2->numOfChildren];
-   leg2->children[0] = foot2;
-
-   leg3->numOfChildren = 1;
-   leg3->children = new RigidBody*[leg3->numOfChildren];
-   leg3->children[0] = foot3;
-
-   leg4->numOfChildren = 1;
-   leg4->children = new RigidBody*[leg4->numOfChildren];
-   leg4->children[0] = foot4;
-
-   engine->numOfChildren = 1;
-   engine->children = new RigidBody*[engine->numOfChildren];
-   engine->children[0] = casing;
-
-   return container;
-
-}
-/*-----------------------------------------------*/
-static void initLander()
-{
-   /*	PURPOSE:		Creates and adds a lander to the array of RigidBody objects
-      RECEIVES:
-      RETURNS:
-      REMARKS:
-      */
-
-   RigidBody *lander;
-   lander = buildLander();
-   lander->rtf.setTranslation(Cvec3(0, 1.95, 0));
-   g_rigidBodies[1] = *lander;
+   RigidBody *EcodTM;
+   EcodTM = buildEpilepticCubeOfDoomTM();
+   EcodTM->rtf.setTranslation(Cvec3(0, 0, 0));
+   g_rigidBodies[1] = *EcodTM;
 }
 /*-----------------------------------------------*/
 static void initGround()
@@ -682,7 +570,7 @@ static void initCamera()
       REMARKS:
       */
 
-   Cvec3 eye = Cvec3(0.0, 2.0, 10.0);
+   Cvec3 eye = Cvec3(0.0, 2.0, 5.0);
    g_skyRbt.setTranslation(eye);
    g_eyeRbt = g_skyRbt;
    lookAtOrigin();
@@ -778,7 +666,7 @@ static void initGeometry()
       */
 
    //initGround();
-   initLander();
+   initEpilepticCubeOfDoomTM();
 }
 /*-----------------------------------------------*/
 static void loadTexture(GLuint type, GLuint texHandle, const char *filename, int* width, int* height)

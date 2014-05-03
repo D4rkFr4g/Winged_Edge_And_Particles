@@ -250,10 +250,16 @@ void makeCylinder(int slices, float radius, float height, VtxOutIter vtxIter, Id
 		k += 2;
 	}
 }
-
+/*-----------------------------------------------*/
 template<typename VtxOutIter, typename IdxOutIter>
 void makeTriangle(VtxOutIter vtxIter, IdxOutIter idxIter) 
 {
+   /*	PURPOSE:		Sets up index and vertex buffersfor a triangle
+      RECEIVES:
+      RETURNS:		
+      REMARKS:
+   */
+
 	using namespace std;
 
 	float startX = sqrt(0.75) / 2.0;
@@ -286,6 +292,71 @@ void makeTriangle(VtxOutIter vtxIter, IdxOutIter idxIter)
 	idxIter[1] = 1;
 	idxIter[2] = 2;
 }
+/*-----------------------------------------------*/
+template<typename VtxOutIter, typename IdxOutIter>
+void makePoint(VtxOutIter vtxIter, IdxOutIter idxIter)
+{
+   /*	PURPOSE:		Sets up index and vertex buffersfor a point
+      RECEIVES:
+      RETURNS:
+      REMARKS:
+   */
 
+   Cvec3f point = Cvec3f(0, 0, 0);
+   float x = point[0];
+   float y = point[1];
+   float z = point[2];
+
+   Cvec3f n(x, y, z);
+   Cvec3f t(-x, y, 0);
+   Cvec3f b = cross(n, t);
+
+   *vtxIter = GenericVertex(
+      x, y, z,
+      n[0], n[1], n[2],
+      0.0, 0.0,
+      t[0], t[1], t[2],
+      b[0], b[1], b[2]);
+
+   idxIter[0] = 0;
+}
+/*-----------------------------------------------*/
+template<typename VtxOutIter, typename IdxOutIter>
+void makeLine(VtxOutIter vtxIter, IdxOutIter idxIter)
+{
+   /*	PURPOSE:		Sets up index and vertex buffersfor a line
+   RECEIVES:
+   RETURNS:
+   REMARKS:
+   */
+
+   float startX = 0.5;
+
+   Cvec3f *twoPoints = new Cvec3f[2];
+   twoPoints[0] = Cvec3f(-startX, 0, 0);
+   twoPoints[1] = Cvec3f(startX, 0, 0);
+
+   for (int i = 0; i < 2; i++)
+   {
+      float x = twoPoints[i][0];
+      float y = twoPoints[i][1];
+      float z = twoPoints[i][2];
+
+      Cvec3f n(x, y, z);
+      Cvec3f t(-x, y, 0);
+      Cvec3f b = cross(n, t);
+
+      *vtxIter = GenericVertex(
+         x, y, z,
+         n[0], n[1], n[2],
+         0, 0,
+         t[0], t[1], t[2],
+         b[0], b[1], b[2]);
+      ++vtxIter;
+   }
+
+   idxIter[0] = 0;
+   idxIter[1] = 1;
+}
 
 #endif
