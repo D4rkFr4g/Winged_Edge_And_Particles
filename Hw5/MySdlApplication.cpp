@@ -72,10 +72,11 @@ static int g_mouseClickX, g_mouseClickY; // coordinates for mouse click event
 static int g_activeShader = 0;
 SDL_TimerID g_animationTimer;
 static bool g_isAnimating = false;
+static bool g_isParticulating = false;
 static WE_Vertex* g_EcodTM_Vertex;
-static WE_Edge g_weEdges[12];
-static WE_Face g_weFaces[6];
-static WE_Vertex g_weVertices[8];
+static WE_Edge g_weEdges[24];
+static WE_Face g_weFaces[16];
+static WE_Vertex g_weVertices[10];
 
 static float g_frustFovY = G_FRUST_MIN_FOV; // FOV in y direction
 
@@ -295,20 +296,270 @@ static RigidBody* buildCube()
 
 }
 /*-----------------------------------------------*/
+static void buildEdges()
+{
+   /*	PURPOSE:		Builds the edges of the WingedEdge Cube
+      RECEIVES:
+      RETURNS:		
+      REMARKS:		
+   */
+
+   // Build all edges
+   WE_Edge* edge = &g_weEdges[0];
+   edge->vert1 = &g_weVertices[0];
+   edge->vert2 = &g_weVertices[1];
+   edge->aFace = &g_weFaces[1];
+   edge->bFace = &g_weFaces[12];
+   edge->aPrev = &g_weEdges[9];
+   edge->bPrev = &g_weEdges[23];
+   edge->aNext = &g_weEdges[10];
+   edge->bNext = &g_weEdges[20];
+
+   edge = &g_weEdges[1];
+   edge->vert1 = &g_weVertices[1];
+   edge->vert2 = &g_weVertices[2];
+   edge->aFace = &g_weFaces[3];
+   edge->bFace = &g_weFaces[13];
+   edge->aPrev = &g_weEdges[11];
+   edge->bPrev = &g_weEdges[20];
+   edge->aNext = &g_weEdges[12];
+   edge->bNext = &g_weEdges[21];
+
+   edge = &g_weEdges[2];
+   edge->vert1 = &g_weVertices[2];
+   edge->vert2 = &g_weVertices[3];
+   edge->aFace = &g_weFaces[5];
+   edge->bFace = &g_weFaces[14];
+   edge->aPrev = &g_weEdges[13];
+   edge->bPrev = &g_weEdges[21];
+   edge->aNext = &g_weEdges[14];
+   edge->bNext = &g_weEdges[22];
+
+   edge = &g_weEdges[3];
+   edge->vert1 = &g_weVertices[3];
+   edge->vert2 = &g_weVertices[0];
+   edge->aFace = &g_weFaces[7];
+   edge->bFace = &g_weFaces[15];
+   edge->aPrev = &g_weEdges[15];
+   edge->bPrev = &g_weEdges[22];
+   edge->aNext = &g_weEdges[8];
+   edge->bNext = &g_weEdges[23];
+
+   edge = &g_weEdges[4];
+   edge->vert1 = &g_weVertices[4];
+   edge->vert2 = &g_weVertices[5];
+   edge->aFace = &g_weFaces[0];
+   edge->bFace = &g_weFaces[8];
+   edge->aPrev = &g_weEdges[19];
+   edge->bPrev = &g_weEdges[8];
+   edge->aNext = &g_weEdges[16];
+   edge->bNext = &g_weEdges[9];
+
+   edge = &g_weEdges[5];
+   edge->vert1 = &g_weVertices[5];
+   edge->vert2 = &g_weVertices[6];
+   edge->aFace = &g_weFaces[2];
+   edge->bFace = &g_weFaces[9];
+   edge->aPrev = &g_weEdges[16];
+   edge->bPrev = &g_weEdges[10];
+   edge->aNext = &g_weEdges[17];
+   edge->bNext = &g_weEdges[11];
+
+   edge = &g_weEdges[6];
+   edge->vert1 = &g_weVertices[6];
+   edge->vert2 = &g_weVertices[7];
+   edge->aFace = &g_weFaces[4];
+   edge->bFace = &g_weFaces[10];
+   edge->aPrev = &g_weEdges[17];
+   edge->bPrev = &g_weEdges[12];
+   edge->aNext = &g_weEdges[18];
+   edge->bNext = &g_weEdges[13];
+
+   edge = &g_weEdges[7];
+   edge->vert1 = &g_weVertices[7];
+   edge->vert2 = &g_weVertices[4];
+   edge->aFace = &g_weFaces[6];
+   edge->bFace = &g_weFaces[11];
+   edge->aPrev = &g_weEdges[18];
+   edge->bPrev = &g_weEdges[14];
+   edge->aNext = &g_weEdges[19];
+   edge->bNext = &g_weEdges[15];
+
+   edge = &g_weEdges[8];
+   edge->vert1 = &g_weVertices[0];
+   edge->vert2 = &g_weVertices[4];
+   edge->aFace = &g_weFaces[7];
+   edge->bFace = &g_weFaces[0];
+   edge->aPrev = &g_weEdges[3];
+   edge->bPrev = &g_weEdges[9];
+   edge->aNext = &g_weEdges[7];
+   edge->bNext = &g_weEdges[4];
+
+   edge = &g_weEdges[9];
+   edge->vert1 = &g_weVertices[0];
+   edge->vert2 = &g_weVertices[5];
+   edge->aFace = &g_weFaces[0];
+   edge->bFace = &g_weFaces[1];
+   edge->aPrev = &g_weEdges[8];
+   edge->bPrev = &g_weEdges[0];
+   edge->aNext = &g_weEdges[4];
+   edge->bNext = &g_weEdges[10];
+
+   edge = &g_weEdges[10];
+   edge->vert1 = &g_weVertices[1];
+   edge->vert2 = &g_weVertices[5];
+   edge->aFace = &g_weFaces[1];
+   edge->bFace = &g_weFaces[2];
+   edge->aPrev = &g_weEdges[0];
+   edge->bPrev = &g_weEdges[11];
+   edge->aNext = &g_weEdges[9];
+   edge->bNext = &g_weEdges[5];
+
+   edge = &g_weEdges[11];
+   edge->vert1 = &g_weVertices[1];
+   edge->vert2 = &g_weVertices[6];
+   edge->aFace = &g_weFaces[2];
+   edge->bFace = &g_weFaces[3];
+   edge->aPrev = &g_weEdges[10];
+   edge->bPrev = &g_weEdges[1];
+   edge->aNext = &g_weEdges[5];
+   edge->bNext = &g_weEdges[12];
+
+   edge = &g_weEdges[12];
+   edge->vert1 = &g_weVertices[2];
+   edge->vert2 = &g_weVertices[6];
+   edge->aFace = &g_weFaces[3];
+   edge->bFace = &g_weFaces[4];
+   edge->aPrev = &g_weEdges[1];
+   edge->bPrev = &g_weEdges[13];
+   edge->aNext = &g_weEdges[11];
+   edge->bNext = &g_weEdges[6];
+
+   edge = &g_weEdges[13];
+   edge->vert1 = &g_weVertices[2];
+   edge->vert2 = &g_weVertices[7];
+   edge->aFace = &g_weFaces[4];
+   edge->bFace = &g_weFaces[5];
+   edge->aPrev = &g_weEdges[12];
+   edge->bPrev = &g_weEdges[2];
+   edge->aNext = &g_weEdges[6];
+   edge->bNext = &g_weEdges[14];
+
+   edge = &g_weEdges[14];
+   edge->vert1 = &g_weVertices[3];
+   edge->vert2 = &g_weVertices[7];
+   edge->aFace = &g_weFaces[5];
+   edge->bFace = &g_weFaces[6];
+   edge->aPrev = &g_weEdges[2];
+   edge->bPrev = &g_weEdges[15];
+   edge->aNext = &g_weEdges[13];
+   edge->bNext = &g_weEdges[7];
+
+   edge = &g_weEdges[15];
+   edge->vert1 = &g_weVertices[3];
+   edge->vert2 = &g_weVertices[4];
+   edge->aFace = &g_weFaces[6];
+   edge->bFace = &g_weFaces[7];
+   edge->aPrev = &g_weEdges[14];
+   edge->bPrev = &g_weEdges[3];
+   edge->aNext = &g_weEdges[7];
+   edge->bNext = &g_weEdges[15];
+
+   edge = &g_weEdges[16];
+   edge->vert1 = &g_weVertices[5];
+   edge->vert2 = &g_weVertices[8];
+   edge->aFace = &g_weFaces[8];
+   edge->bFace = &g_weFaces[9];
+   edge->aPrev = &g_weEdges[4];
+   edge->bPrev = &g_weEdges[5];
+   edge->aNext = &g_weEdges[19];
+   edge->bNext = &g_weEdges[17];
+
+   edge = &g_weEdges[17];
+   edge->vert1 = &g_weVertices[6];
+   edge->vert2 = &g_weVertices[8];
+   edge->aFace = &g_weFaces[9];
+   edge->bFace = &g_weFaces[10];
+   edge->aPrev = &g_weEdges[5];
+   edge->bPrev = &g_weEdges[6];
+   edge->aNext = &g_weEdges[16];
+   edge->bNext = &g_weEdges[18];
+
+   edge = &g_weEdges[18];
+   edge->vert1 = &g_weVertices[7];
+   edge->vert2 = &g_weVertices[8];
+   edge->aFace = &g_weFaces[10];
+   edge->bFace = &g_weFaces[11];
+   edge->aPrev = &g_weEdges[6];
+   edge->bPrev = &g_weEdges[7];
+   edge->aNext = &g_weEdges[17];
+   edge->bNext = &g_weEdges[19];
+   
+   edge = &g_weEdges[19];
+   edge->vert1 = &g_weVertices[4];
+   edge->vert2 = &g_weVertices[8];
+   edge->aFace = &g_weFaces[11];
+   edge->bFace = &g_weFaces[8];
+   edge->aPrev = &g_weEdges[7];
+   edge->bPrev = &g_weEdges[4];
+   edge->aNext = &g_weEdges[18];
+   edge->bNext = &g_weEdges[16];
+   
+   edge = &g_weEdges[20];
+   edge->vert1 = &g_weVertices[1];
+   edge->vert2 = &g_weVertices[9];
+   edge->aFace = &g_weFaces[12];
+   edge->bFace = &g_weFaces[13];
+   edge->aPrev = &g_weEdges[0];
+   edge->bPrev = &g_weEdges[1];
+   edge->aNext = &g_weEdges[23];
+   edge->bNext = &g_weEdges[21];
+
+   edge = &g_weEdges[21];
+   edge->vert1 = &g_weVertices[2];
+   edge->vert2 = &g_weVertices[9];
+   edge->aFace = &g_weFaces[13];
+   edge->bFace = &g_weFaces[14];
+   edge->aPrev = &g_weEdges[1];
+   edge->bPrev = &g_weEdges[2];
+   edge->aNext = &g_weEdges[20];
+   edge->bNext = &g_weEdges[22];
+
+   edge = &g_weEdges[22];
+   edge->vert1 = &g_weVertices[3];
+   edge->vert2 = &g_weVertices[9];
+   edge->aFace = &g_weFaces[14];
+   edge->bFace = &g_weFaces[15];
+   edge->aPrev = &g_weEdges[2];
+   edge->bPrev = &g_weEdges[3];
+   edge->aNext = &g_weEdges[21];
+   edge->bNext = &g_weEdges[23];
+
+   edge = &g_weEdges[23];
+   edge->vert1 = &g_weVertices[0];
+   edge->vert2 = &g_weVertices[9];
+   edge->aFace = &g_weFaces[15];
+   edge->bFace = &g_weFaces[12];
+   edge->aPrev = &g_weEdges[3];
+   edge->bPrev = &g_weEdges[0];
+   edge->aNext = &g_weEdges[22];
+   edge->bNext = &g_weEdges[20];
+}
+/*-----------------------------------------------*/
 static void buildWingEdgedCube(RigidBody** vertices, RigidBody** edges, RigidBody** faces)
 {
    // Create all WE objects for cube
-   for (int i = 0; i < 12; i++)
+   for (int i = 0; i < 24; i++)
    {
       g_weEdges[i] = WE_Edge();
       g_weEdges[i].data = edges[i];
    }
-   for (int i = 0; i < 8; i++)
+   for (int i = 0; i < 10; i++)
    {
       g_weVertices[i] = WE_Vertex();
       g_weVertices[i].data = vertices[i];
    }
-   for (int i = 0; i < 6; i++)
+   for (int i = 0; i < 16; i++)
    {
       g_weFaces[i] = WE_Face();
       g_weFaces[i].data = faces[i];
@@ -316,80 +567,133 @@ static void buildWingEdgedCube(RigidBody** vertices, RigidBody** edges, RigidBod
 
    g_EcodTM_Vertex = &g_weVertices[0];
 
-   // Set edges for all vertices
+   // Set edges for all vertices (10)
    int i = 0;
-   g_weVertices[i].edges.push_back(&g_weEdges[1]);
-   g_weVertices[i].edges.push_back(&g_weEdges[4]);
-   g_weVertices[i].edges.push_back(&g_weEdges[5]);
-   i++;
-   g_weVertices[i].edges.push_back(&g_weEdges[1]);
-   g_weVertices[i].edges.push_back(&g_weEdges[2]);
-   g_weVertices[i].edges.push_back(&g_weEdges[6]);
-   i++;
-   g_weVertices[i].edges.push_back(&g_weEdges[2]);
-   g_weVertices[i].edges.push_back(&g_weEdges[3]);
-   g_weVertices[i].edges.push_back(&g_weEdges[7]);
-   i++;
-   g_weVertices[i].edges.push_back(&g_weEdges[3]);
-   g_weVertices[i].edges.push_back(&g_weEdges[4]);
    g_weVertices[i].edges.push_back(&g_weEdges[8]);
-   i++;
-   g_weVertices[i].edges.push_back(&g_weEdges[8]);
-   g_weVertices[i].edges.push_back(&g_weEdges[11]);
-   g_weVertices[i].edges.push_back(&g_weEdges[12]);
-   i++;
-   g_weVertices[i].edges.push_back(&g_weEdges[5]);
    g_weVertices[i].edges.push_back(&g_weEdges[9]);
-   g_weVertices[i].edges.push_back(&g_weEdges[12]);
+   g_weVertices[i].edges.push_back(&g_weEdges[0]);
+   g_weVertices[i].edges.push_back(&g_weEdges[23]);
+   g_weVertices[i].edges.push_back(&g_weEdges[3]);
    i++;
-   g_weVertices[i].edges.push_back(&g_weEdges[6]);
-   g_weVertices[i].edges.push_back(&g_weEdges[9]);
-   g_weVertices[i].edges.push_back(&g_weEdges[10]);
-   i++;
-   g_weVertices[i].edges.push_back(&g_weEdges[7]);
    g_weVertices[i].edges.push_back(&g_weEdges[10]);
    g_weVertices[i].edges.push_back(&g_weEdges[11]);
+   g_weVertices[i].edges.push_back(&g_weEdges[1]);
+   g_weVertices[i].edges.push_back(&g_weEdges[20]);
+   g_weVertices[i].edges.push_back(&g_weEdges[0]);
+   i++;
+   g_weVertices[i].edges.push_back(&g_weEdges[12]);
+   g_weVertices[i].edges.push_back(&g_weEdges[13]);
+   g_weVertices[i].edges.push_back(&g_weEdges[2]);
+   g_weVertices[i].edges.push_back(&g_weEdges[21]);
+   g_weVertices[i].edges.push_back(&g_weEdges[1]);
+   i++;
+   g_weVertices[i].edges.push_back(&g_weEdges[14]);
+   g_weVertices[i].edges.push_back(&g_weEdges[15]);
+   g_weVertices[i].edges.push_back(&g_weEdges[3]);
+   g_weVertices[i].edges.push_back(&g_weEdges[22]);
+   g_weVertices[i].edges.push_back(&g_weEdges[2]);
+   i++;
+   g_weVertices[i].edges.push_back(&g_weEdges[8]);
+   g_weVertices[i].edges.push_back(&g_weEdges[15]);
+   g_weVertices[i].edges.push_back(&g_weEdges[7]);
+   g_weVertices[i].edges.push_back(&g_weEdges[19]);
+   g_weVertices[i].edges.push_back(&g_weEdges[4]);
+   i++;
+   g_weVertices[i].edges.push_back(&g_weEdges[10]);
+   g_weVertices[i].edges.push_back(&g_weEdges[9]);
+   g_weVertices[i].edges.push_back(&g_weEdges[4]);
+   g_weVertices[i].edges.push_back(&g_weEdges[16]);
+   g_weVertices[i].edges.push_back(&g_weEdges[5]);
+   i++;
+   g_weVertices[i].edges.push_back(&g_weEdges[12]);
+   g_weVertices[i].edges.push_back(&g_weEdges[11]);
+   g_weVertices[i].edges.push_back(&g_weEdges[5]);
+   g_weVertices[i].edges.push_back(&g_weEdges[17]);
+   g_weVertices[i].edges.push_back(&g_weEdges[6]);
+   i++;
+   g_weVertices[i].edges.push_back(&g_weEdges[14]);
+   g_weVertices[i].edges.push_back(&g_weEdges[13]);
+   g_weVertices[i].edges.push_back(&g_weEdges[6]);
+   g_weVertices[i].edges.push_back(&g_weEdges[18]);
+   g_weVertices[i].edges.push_back(&g_weEdges[7]);
+   i++;
+   g_weVertices[i].edges.push_back(&g_weEdges[16]);
+   g_weVertices[i].edges.push_back(&g_weEdges[17]);
+   g_weVertices[i].edges.push_back(&g_weEdges[18]);
+   g_weVertices[i].edges.push_back(&g_weEdges[19]);
+   i++;
+   g_weVertices[i].edges.push_back(&g_weEdges[20]);
+   g_weVertices[i].edges.push_back(&g_weEdges[21]);
+   g_weVertices[i].edges.push_back(&g_weEdges[22]);
+   g_weVertices[i].edges.push_back(&g_weEdges[23]);
 
    // Set edges for all faces
    i = 0;
-   g_weFaces[i].edges.push_back(&g_weEdges[1]);
-   g_weFaces[i].edges.push_back(&g_weEdges[2]);
-   g_weFaces[i].edges.push_back(&g_weEdges[3]);
    g_weFaces[i].edges.push_back(&g_weEdges[4]);
-   i++;
-   g_weFaces[i].edges.push_back(&g_weEdges[1]);
-   g_weFaces[i].edges.push_back(&g_weEdges[5]);
+   g_weFaces[i].edges.push_back(&g_weEdges[8]);
    g_weFaces[i].edges.push_back(&g_weEdges[9]);
-   g_weFaces[i].edges.push_back(&g_weEdges[6]);
    i++;
-   g_weFaces[i].edges.push_back(&g_weEdges[2]);
-   g_weFaces[i].edges.push_back(&g_weEdges[6]);
-   g_weFaces[i].edges.push_back(&g_weEdges[7]);
+   g_weFaces[i].edges.push_back(&g_weEdges[0]);
    g_weFaces[i].edges.push_back(&g_weEdges[10]);
-   i++;
-   g_weFaces[i].edges.push_back(&g_weEdges[3]);
-   g_weFaces[i].edges.push_back(&g_weEdges[7]);
-   g_weFaces[i].edges.push_back(&g_weEdges[8]);
-   g_weFaces[i].edges.push_back(&g_weEdges[11]);
-   i++;
-   g_weFaces[i].edges.push_back(&g_weEdges[4]);
-   g_weFaces[i].edges.push_back(&g_weEdges[5]);
-   g_weFaces[i].edges.push_back(&g_weEdges[8]);
-   g_weFaces[i].edges.push_back(&g_weEdges[12]);
-   i++;
    g_weFaces[i].edges.push_back(&g_weEdges[9]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[5]);
    g_weFaces[i].edges.push_back(&g_weEdges[10]);
    g_weFaces[i].edges.push_back(&g_weEdges[11]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[1]);
    g_weFaces[i].edges.push_back(&g_weEdges[12]);
+   g_weFaces[i].edges.push_back(&g_weEdges[11]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[6]);
+   g_weFaces[i].edges.push_back(&g_weEdges[12]);
+   g_weFaces[i].edges.push_back(&g_weEdges[13]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[2]);
+   g_weFaces[i].edges.push_back(&g_weEdges[14]);
+   g_weFaces[i].edges.push_back(&g_weEdges[13]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[7]);
+   g_weFaces[i].edges.push_back(&g_weEdges[14]);
+   g_weFaces[i].edges.push_back(&g_weEdges[15]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[3]);
+   g_weFaces[i].edges.push_back(&g_weEdges[8]);
+   g_weFaces[i].edges.push_back(&g_weEdges[15]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[4]);
+   g_weFaces[i].edges.push_back(&g_weEdges[16]);
+   g_weFaces[i].edges.push_back(&g_weEdges[19]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[5]);
+   g_weFaces[i].edges.push_back(&g_weEdges[17]);
+   g_weFaces[i].edges.push_back(&g_weEdges[16]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[6]);
+   g_weFaces[i].edges.push_back(&g_weEdges[18]);
+   g_weFaces[i].edges.push_back(&g_weEdges[17]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[7]);
+   g_weFaces[i].edges.push_back(&g_weEdges[19]);
+   g_weFaces[i].edges.push_back(&g_weEdges[18]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[0]);
+   g_weFaces[i].edges.push_back(&g_weEdges[23]);
+   g_weFaces[i].edges.push_back(&g_weEdges[20]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[1]);
+   g_weFaces[i].edges.push_back(&g_weEdges[20]);
+   g_weFaces[i].edges.push_back(&g_weEdges[21]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[2]);
+   g_weFaces[i].edges.push_back(&g_weEdges[21]);
+   g_weFaces[i].edges.push_back(&g_weEdges[22]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[3]);
+   g_weFaces[i].edges.push_back(&g_weEdges[22]);
+   g_weFaces[i].edges.push_back(&g_weEdges[23]);
 
-   // Build all edges
-   WE_Edge* edge = &g_weEdges[0];
-   edge->vert1 = &g_weVertices[0];
-   edge->vert2 = &g_weVertices[1];
-   edge->aFace = &g_weFaces[0];
-   edge->bFace = &g_weFaces[1];
-   //edge->aNext = ;
-   //edge->bNext = ;
+   buildEdges();
 }
 /*-----------------------------------------------*/
 static RigidBody* buildEpilepticCubeOfDoomTM()
@@ -552,29 +856,41 @@ static void initGround()
    g_ground.reset(new MySdlApplication::Geometry(&vtx[0], &idx[0], 4, 6));
 }
 /*-----------------------------------------------*/
-Uint32 animateLander(Uint32 interval, void *param)
+Uint32 animateEcodTM(Uint32 interval, void *param)
 {
+   /*	PURPOSE:		Animates EcodTM to flash crazily
+      RECEIVES:   interval - time period that has passed
+      RETURNS:
+      REMARKS:
+   */
 
    static float stopwatch = 0;
    float msecsPerFrame = interval;
    static int animationPart = 0;
-   static int animationParts = 2;
+   static int animationParts = 4;
    static bool isAnimating = true;
-   static float totalSecs = 5.0;
+   static float totalSecs = 1.0;
    static float totalTime = (totalSecs / animationParts) * 1000;
    static float elapsedTime = 0;
    static bool isFirstEntry = true;
-   static RigTForm start;
-   static RigTForm end;
+   static Cvec3 red = Cvec3(0.5, 0, 0);
+   static Cvec3 green = Cvec3(0, 0.5, 0);
+   static Cvec3 blue = Cvec3(0, 0, 0.5);
+   static int colorIndex = 0;
+   static vector<Cvec3> colors;
+   static vector<RigidBody*> animatedParts;
+   static WE_Edge* randoEdge;
 
+   
    // Used to reset variables every time animation is run
    if (isFirstEntry)
    {
-      start = g_rigidBodies[1].rtf;
-      end = RigTForm(Cvec3(0, 5, 0)) * start;
       elapsedTime = totalTime;
-
       isFirstEntry = false;
+
+      colors.push_back(red);
+      colors.push_back(green);
+      colors.push_back(blue);
    }
 
    //Handles which part of animation is currently running
@@ -582,16 +898,53 @@ Uint32 animateLander(Uint32 interval, void *param)
    {
       if (animationPart == 0)
       {
-         start = g_rigidBodies[1].rtf;
-         end = RigTForm(Cvec3(0, 3, 0)) * start;
+         // Set Vertex
+         animatedParts.push_back(g_EcodTM_Vertex->data);
       }
       else if (animationPart == 1)
       {
-         start = g_rigidBodies[1].rtf;
-         end = RigTForm(Cvec3(0, -3, 0)) * start;
+         // Reset colors
+         for (int i = 0; i < animatedParts.size(); i++)
+            animatedParts[i]->color = animatedParts[i]->originalColor;
+
+         // Set Vertex's Edges
+         animatedParts.clear();
+         for (int i = 0; i < g_EcodTM_Vertex->edges.size(); i++)
+            animatedParts.push_back(g_EcodTM_Vertex->edges[i]->data);
+      }
+      else if (animationPart == 2)
+      {
+         // Reset colors
+         for (int i = 0; i < animatedParts.size(); i++)
+            animatedParts[i]->color = animatedParts[i]->originalColor;
+
+         // Select Random Edge
+         int choice = rand() % g_EcodTM_Vertex->edges.size();
+         randoEdge = g_EcodTM_Vertex->edges[choice];
+         g_EcodTM_Vertex = randoEdge->vert2;
+         animatedParts.clear();
+
+         animatedParts.push_back(randoEdge->data);
+      }
+      else if (animationPart == 3)
+      {
+         // Reset colors
+         for (int i = 0; i < animatedParts.size(); i++)
+            animatedParts[i]->color = animatedParts[i]->originalColor;
+
+         // Set Random Edge's Faces
+         animatedParts.clear();
+
+         animatedParts.push_back(randoEdge->aFace->data);
+         animatedParts.push_back(randoEdge->bFace->data);
       }
       else
       {
+         // Reset colors
+         for (int i = 0; i < animatedParts.size(); i++)
+            animatedParts[i]->color = animatedParts[i]->originalColor;
+
+         animatedParts.clear();
          isAnimating = false;
       }
 
@@ -603,13 +956,16 @@ Uint32 animateLander(Uint32 interval, void *param)
    {
       float alpha = elapsedTime / totalTime;
 
-      //Handle Translation Interpolation
-      Cvec3 startVec = start.getTranslation();
-      Cvec3 temp = end.getTranslation() - startVec;
-      g_rigidBodies[1].rtf.setTranslation(startVec + (temp * alpha));
+      //Handle Animation
+      
+      for (int i = 0; i < animatedParts.size(); i++)
+         animatedParts[i]->color = colors[colorIndex];
+
+      colorIndex++;
+      if (colorIndex >= 3)
+         colorIndex = 0;
 
       elapsedTime += msecsPerFrame;
-
       //Time total animation
       stopwatch += msecsPerFrame;
    }
@@ -621,9 +977,6 @@ Uint32 animateLander(Uint32 interval, void *param)
       stopwatch = 0;
       animationPart = 0;
       isFirstEntry = true;
-
-      SDL_RemoveTimer(g_animationTimer);
-      g_isAnimating = false;
    }
 
    return interval;
@@ -1140,10 +1493,17 @@ void MySdlApplication::keyboard()
       if (g_rigidBodies[1].children[0]->material >= G_NUM_SHADERS)
          g_rigidBodies[1].children[0]->material = 0;
    }
-   else if (KB_STATE[SDL_SCANCODE_SPACE] && !kbPrevState[SDL_SCANCODE_SPACE])
+   else if (KB_STATE[SDL_SCANCODE_B] && !kbPrevState[SDL_SCANCODE_B])
    {
+      // Particle stuff goes here
+      SDL_RemoveTimer(g_animationTimer);
+      g_isAnimating = false;
+      g_isParticulating = true;
+
 
    }
+   else if (KB_STATE[SDL_SCANCODE_N])
+      g_isParticulating = false;
    else if (KB_STATE[SDL_SCANCODE_ESCAPE])
    {
       // End program
@@ -1151,7 +1511,6 @@ void MySdlApplication::keyboard()
    }
    else if (KB_STATE[SDL_SCANCODE_C] && !kbPrevState[SDL_SCANCODE_C])
    {
-      // TODO Remove this
       Cvec3 cam = g_eyeRbt.getTranslation();
       cout << "camera = <" << cam[0] << ", " << cam[1] << ", " << cam[2] << ">" << endl;
    }
@@ -1236,6 +1595,15 @@ void MySdlApplication::onLoop()
 
    // Logic goes here
    keyboard();
+
+   // Restart animation if need be
+   if (!g_isAnimating && !g_isParticulating)
+   {
+      float fps = 30.0;
+      float msecsPerFrame = 1 / (fps / 1000.0);
+      g_animationTimer = SDL_AddTimer(msecsPerFrame, animateEcodTM, (void *) "animationTimer Callback");
+      g_isAnimating = true;
+   }
 }
 /*-----------------------------------------------*/
 void MySdlApplication::onRender()
@@ -1348,6 +1716,7 @@ bool MySdlApplication::onInit()
    initTextures();
    initCamera();
 
+   srand((unsigned)time(NULL));
    KB_STATE = SDL_GetKeyboardState(NULL);
 
    return true;

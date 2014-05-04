@@ -15,6 +15,7 @@ RigidBody::RigidBody()
    children = NULL;
    numOfChildren = 0;
    color = Cvec3(.5, .5, .5);
+   originalColor = color;
    geom = NULL;
    isVisible = true;
    isChildVisible = true;
@@ -60,6 +61,7 @@ RigidBody::RigidBody(RigTForm rtf_, Matrix4 scale_, RigidBody **children_, MySdl
    numOfChildren = 0;
    geom = geom_;
    color = color_;
+   originalColor = color;
    isVisible = true;
    material = material_;
    mode = GL_TRIANGLES;

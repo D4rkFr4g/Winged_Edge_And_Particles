@@ -27,6 +27,7 @@ public:
    Matrix4 scale;
    RigidBody **children;
    Cvec3 color;
+   Cvec3 originalColor;
    MySdlApplication::Geometry *geom;
    GLenum mode;
    string name;

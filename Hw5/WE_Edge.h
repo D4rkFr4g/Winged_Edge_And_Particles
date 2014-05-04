@@ -14,7 +14,7 @@ public:
    // Variables
    WE_Vertex *vert1, *vert2;
    WE_Face *aFace, *bFace;
-   WE_Edge *aPrev, *aNext;
+   WE_Edge *aPrev, *aNext, *bPrev, *bNext;
    RigidBody* data;
 };
 

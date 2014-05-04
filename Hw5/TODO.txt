@@ -15,7 +15,7 @@ Done -	The viewpoint should be at +5 units along the z-axis, 2 units up. I don't
 	care what light effects you use in the fragment shader. 
 	
 -	Once launched, your program should start an animation, at each phase in the 
-	animation the item being illustrated for that phaase should cycle through the 
+	animation the item being illustrated for that phase should cycle through the 
 	three colors dark red, dark blue, and dark green for 1/4 of a second. 
 	
 -	The animation traverses each vertex among the vertices in your cube, 
