@@ -12,6 +12,9 @@ with a simple particle system.
 
 #include "MySdlApplication.h"
 #include "RigidBody.h"
+#include "WE_Edge.h"
+#include "WE_Face.h"
+#include "WE_Vertex.h"
 
 using namespace std;
 using namespace tr1;
@@ -70,6 +73,9 @@ static int g_activeShader = 0;
 SDL_TimerID g_animationTimer;
 static bool g_isAnimating = false;
 static WE_Vertex* g_EcodTM_Vertex;
+static WE_Edge g_weEdges[12];
+static WE_Face g_weFaces[6];
+static WE_Vertex g_weVertices[8];
 
 static float g_frustFovY = G_FRUST_MIN_FOV; // FOV in y direction
 
@@ -215,6 +221,44 @@ static MySdlApplication::Geometry* initPlane()
    return new MySdlApplication::Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
 /*-----------------------------------------------*/
+static MySdlApplication::Geometry* initRightTriangle()
+{
+   /*	PURPOSE:		Sets up index and vertex buffers and calls geometrymaker for a right triangle
+   RECEIVES:
+   RETURNS:		Geometry - returns Geometry object
+   REMARKS:
+   */
+
+   int ibLen = 3;
+   int vbLen = 3;
+
+   // Temporary storage for plane geometry
+   vector<GenericVertex> vtx(vbLen);
+   vector<unsigned short> idx(ibLen);
+
+   makeRightTriangle(vtx.begin(), idx.begin());
+   return new MySdlApplication::Geometry(&vtx[0], &idx[0], vbLen, ibLen);
+}
+/*-----------------------------------------------*/
+static MySdlApplication::Geometry* initTriangle()
+{
+   /*	PURPOSE:		Sets up index and vertex buffers and calls geometrymaker for a right triangle
+   RECEIVES:
+   RETURNS:		Geometry - returns Geometry object
+   REMARKS:
+   */
+
+   int ibLen = 3;
+   int vbLen = 3;
+
+   // Temporary storage for plane geometry
+   vector<GenericVertex> vtx(vbLen);
+   vector<unsigned short> idx(ibLen);
+
+   makeTriangle(vtx.begin(), idx.begin());
+   return new MySdlApplication::Geometry(&vtx[0], &idx[0], vbLen, ibLen);
+}
+/*-----------------------------------------------*/
 static RigidBody* buildCube()
 {
    /*	PURPOSE:		Builds a cube object
@@ -251,6 +295,103 @@ static RigidBody* buildCube()
 
 }
 /*-----------------------------------------------*/
+static void buildWingEdgedCube(RigidBody** vertices, RigidBody** edges, RigidBody** faces)
+{
+   // Create all WE objects for cube
+   for (int i = 0; i < 12; i++)
+   {
+      g_weEdges[i] = WE_Edge();
+      g_weEdges[i].data = edges[i];
+   }
+   for (int i = 0; i < 8; i++)
+   {
+      g_weVertices[i] = WE_Vertex();
+      g_weVertices[i].data = vertices[i];
+   }
+   for (int i = 0; i < 6; i++)
+   {
+      g_weFaces[i] = WE_Face();
+      g_weFaces[i].data = faces[i];
+   }
+
+   g_EcodTM_Vertex = &g_weVertices[0];
+
+   // Set edges for all vertices
+   int i = 0;
+   g_weVertices[i].edges.push_back(&g_weEdges[1]);
+   g_weVertices[i].edges.push_back(&g_weEdges[4]);
+   g_weVertices[i].edges.push_back(&g_weEdges[5]);
+   i++;
+   g_weVertices[i].edges.push_back(&g_weEdges[1]);
+   g_weVertices[i].edges.push_back(&g_weEdges[2]);
+   g_weVertices[i].edges.push_back(&g_weEdges[6]);
+   i++;
+   g_weVertices[i].edges.push_back(&g_weEdges[2]);
+   g_weVertices[i].edges.push_back(&g_weEdges[3]);
+   g_weVertices[i].edges.push_back(&g_weEdges[7]);
+   i++;
+   g_weVertices[i].edges.push_back(&g_weEdges[3]);
+   g_weVertices[i].edges.push_back(&g_weEdges[4]);
+   g_weVertices[i].edges.push_back(&g_weEdges[8]);
+   i++;
+   g_weVertices[i].edges.push_back(&g_weEdges[8]);
+   g_weVertices[i].edges.push_back(&g_weEdges[11]);
+   g_weVertices[i].edges.push_back(&g_weEdges[12]);
+   i++;
+   g_weVertices[i].edges.push_back(&g_weEdges[5]);
+   g_weVertices[i].edges.push_back(&g_weEdges[9]);
+   g_weVertices[i].edges.push_back(&g_weEdges[12]);
+   i++;
+   g_weVertices[i].edges.push_back(&g_weEdges[6]);
+   g_weVertices[i].edges.push_back(&g_weEdges[9]);
+   g_weVertices[i].edges.push_back(&g_weEdges[10]);
+   i++;
+   g_weVertices[i].edges.push_back(&g_weEdges[7]);
+   g_weVertices[i].edges.push_back(&g_weEdges[10]);
+   g_weVertices[i].edges.push_back(&g_weEdges[11]);
+
+   // Set edges for all faces
+   i = 0;
+   g_weFaces[i].edges.push_back(&g_weEdges[1]);
+   g_weFaces[i].edges.push_back(&g_weEdges[2]);
+   g_weFaces[i].edges.push_back(&g_weEdges[3]);
+   g_weFaces[i].edges.push_back(&g_weEdges[4]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[1]);
+   g_weFaces[i].edges.push_back(&g_weEdges[5]);
+   g_weFaces[i].edges.push_back(&g_weEdges[9]);
+   g_weFaces[i].edges.push_back(&g_weEdges[6]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[2]);
+   g_weFaces[i].edges.push_back(&g_weEdges[6]);
+   g_weFaces[i].edges.push_back(&g_weEdges[7]);
+   g_weFaces[i].edges.push_back(&g_weEdges[10]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[3]);
+   g_weFaces[i].edges.push_back(&g_weEdges[7]);
+   g_weFaces[i].edges.push_back(&g_weEdges[8]);
+   g_weFaces[i].edges.push_back(&g_weEdges[11]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[4]);
+   g_weFaces[i].edges.push_back(&g_weEdges[5]);
+   g_weFaces[i].edges.push_back(&g_weEdges[8]);
+   g_weFaces[i].edges.push_back(&g_weEdges[12]);
+   i++;
+   g_weFaces[i].edges.push_back(&g_weEdges[9]);
+   g_weFaces[i].edges.push_back(&g_weEdges[10]);
+   g_weFaces[i].edges.push_back(&g_weEdges[11]);
+   g_weFaces[i].edges.push_back(&g_weEdges[12]);
+
+   // Build all edges
+   WE_Edge* edge = &g_weEdges[0];
+   edge->vert1 = &g_weVertices[0];
+   edge->vert2 = &g_weVertices[1];
+   edge->aFace = &g_weFaces[0];
+   edge->bFace = &g_weFaces[1];
+   //edge->aNext = ;
+   //edge->bNext = ;
+}
+/*-----------------------------------------------*/
 static RigidBody* buildEpilepticCubeOfDoomTM()
 {
    /*	PURPOSE:		Builds a Lander object
@@ -276,56 +417,83 @@ static RigidBody* buildEpilepticCubeOfDoomTM()
    container->isVisible = false;
    container->name = "container";
 
-   // Make Vertices (8)
-   const int numVertices = 8;
+   // Make Vertices (10)
+   const int numVertices = 10;
    RigidBody **vertices = new RigidBody*[numVertices];
 
    float h = 1.0;
-   Cvec3 points[numVertices] = { Cvec3(-h, h, h), Cvec3(h, h, h), Cvec3(h,h,-h), Cvec3(-h,h,-h),
-      Cvec3(-h, -h, h), Cvec3(h, -h, h), Cvec3(h, -h, -h), Cvec3(-h, -h, -h) };
+   Cvec3 points[numVertices] = { Cvec3(-h, -h, h), Cvec3(h, -h, h), Cvec3(h,-h,-h), Cvec3(-h,-h,-h),
+      Cvec3(-h, h, h), Cvec3(h, h, h), Cvec3(h, h, -h), Cvec3(-h, h, -h), Cvec3(0,h,0), Cvec3(0,-h,0) };
 
    scaleTemp = Matrix4::makeScale(Cvec3(2, 2, 2));
    for (int i = 0; i < numVertices; i++)
    {
       rigTemp = RigTForm(points[i]);
     
-      vertices[i] = new RigidBody(rigTemp, scaleTemp, NULL, initPoint(), red, SOLID);
+      vertices[i] = new RigidBody(rigTemp, scaleTemp, NULL, initPoint(), black, SOLID);
       vertices[i]->mode = GL_POINTS;
    }
 
-   // Make Edges (12)
-   const int numEdges = 12;
+   // Make Edges (24)
+   const int numEdges = 24;
    RigidBody **edges = new RigidBody*[numEdges];
 
-   Cvec3 edgeTranslations[numEdges] = { Cvec3(-h, h, 0), Cvec3(0, h, h), Cvec3(h,h,0), Cvec3(0,h,-h),
-      Cvec3(-h, 0, h), Cvec3(h, 0, h), Cvec3(-h, 0, -h), Cvec3(h, 0, -h),
-      Cvec3(-h, -h, 0), Cvec3(0, -h, h), Cvec3(h, -h, 0), Cvec3(0, -h, -h) };
-   Cvec3 edgeRotations[numEdges] = {Cvec3(0,90,0), Cvec3(0,0,0), Cvec3(0,-90,0), Cvec3(0,180,0),
-      Cvec3(0, 0, 90), Cvec3(0, 0, 90), Cvec3(0, 180, 90), Cvec3(0,180,90),
-      Cvec3(0, 90, 0), Cvec3(0, 0, 0), Cvec3(0, -90, 0), Cvec3(0, 180, 0) };
+   Cvec3 edgeTranslations[numEdges] = { 
+      /*0*/Cvec3(0, -h, h), Cvec3(h, -h, 0), Cvec3(0, -h, -h), Cvec3(-h, -h, 0),
+      /*4*/Cvec3(0, h, h), Cvec3(h, h, 0), Cvec3(0, h, -h), Cvec3(-h, h, 0),
+      /*8*/Cvec3(-h, 0, h), Cvec3(0, 0, h), Cvec3(h, 0, h), Cvec3(h, 0, 0),
+      /*12*/Cvec3(h,0,-h), Cvec3(0,0,-h), Cvec3(-h,0,-h), Cvec3(-h,0,0),
+      /*16*/Cvec3(h/2,h,h/2), Cvec3(h/2,h,-h/2), Cvec3(-h/2,h,-h/2), Cvec3(-h/2,h,h/2),
+      /*20*/Cvec3(h/2,-h,h/2), Cvec3(h/2,-h,-h/2), Cvec3(-h/2,-h,-h/2), Cvec3(-h/2,-h,h/2)};
+   Cvec3 edgeRotations[numEdges] = { 
+      /*0*/Cvec3(0, 0, 0), Cvec3(0, -90, 0), Cvec3(0, 180, 0), Cvec3(0, 90, 0),
+      /*4*/Cvec3(0, 0, 0), Cvec3(0, -90, 0), Cvec3(0, 180, 0), Cvec3(0, 90, 0),
+      /*8*/Cvec3(0, 0, 90), Cvec3(0, 0, 45), Cvec3(0, 0, 90), Cvec3(45, -90, 0),
+      /*12*/Cvec3(0,0,90), Cvec3(0,180,45), Cvec3(0,0,90), Cvec3(-45,-90,0),
+      /*16*/Cvec3(0,-45,0), Cvec3(0,45,0), Cvec3(0,-45,0), Cvec3(0,45,0),
+      /*20*/Cvec3(0,-45,0), Cvec3(0,45,0), Cvec3(0,-45,0), Cvec3(0,45,0)};
 
    for (int i = 0; i < numEdges; i++)
    {
+      // Long Diagonals
+      if (i == 9 || i == 11 || i == 13 || i == 15)
+         scaleTemp = Matrix4::makeScale(Cvec3(2.8243, 2.8243, 2.8243));
+      else if (i >= 16)
+         scaleTemp = Matrix4::makeScale(Cvec3(1.4142, 1.4142, 1.4142));
+      else
+         scaleTemp = Matrix4::makeScale(Cvec3(2, 2, 2));
+
+
       rigTemp = RigTForm(edgeTranslations[i]);
       rigTemp.setRotation(rigTemp.getRotation() * Quat().makeRotation(edgeRotations[i]));
       edges[i] = new RigidBody(rigTemp, scaleTemp, NULL, initLine(), black, SOLID);
       edges[i]->mode = GL_LINES;
    }
 
-   // Make Faces (6)
-   const int numFaces = 6;
+   // Make Faces (16)
+   const int numFaces = 16;
    RigidBody **faces = new RigidBody*[numFaces];
+   scaleTemp = Matrix4::makeScale(Cvec3(2, 2, 2));
 
-   Cvec3 faceTranslations[numFaces] = {Cvec3(0,h,0), Cvec3(0,0,h), Cvec3(h,0,0), Cvec3(0,0,-h),
-      Cvec3(-h,0,0), Cvec3(0,-h,0)};
-   Cvec3 faceRotations[numFaces] = {Cvec3(0,0,0), Cvec3(90,0,0), Cvec3(0,0,-90), Cvec3(-90,0,0),
-      Cvec3(0,0,90), Cvec3(180,0,0)};
+   Cvec3 faceTranslations[numFaces] = {
+      /*0*/Cvec3(0, 0, h), Cvec3(0, 0, h), Cvec3(h, 0, 0), Cvec3(h, 0, 0),
+      /*4*/Cvec3(0, 0, -h), Cvec3(0, 0, -h), Cvec3(-h, 0, 0), Cvec3(-h, 0, 0),
+      /*8*/Cvec3(0, h, 0), Cvec3(0, h, 0), Cvec3(0, h, 0), Cvec3(0, h, 0),
+      /*12*/Cvec3(0, -h, 0), Cvec3(0, -h, 0), Cvec3(0, -h, 0), Cvec3(0, -h, 0)};
+   Cvec3 faceRotations[numFaces] = {
+      /*0*/Cvec3(0, 0, -90), Cvec3(0, 0, 90), Cvec3(0, 90, -90), Cvec3(0, 90, 90),
+      /*4*/Cvec3(0, 180, -90), Cvec3(0, 180, 90), Cvec3(90, -90, 0), Cvec3(-90, -90, 0),
+      /*8*/Cvec3(-90, 0, 0), Cvec3(-90, 0, 90), Cvec3(-90, 0, 180), Cvec3(-90, 0, -90),
+      /*12*/Cvec3(90, 0, 0), Cvec3(90, 0, 90), Cvec3(90, 0, 180), Cvec3(90, 0, -90) };
 
    for (int i = 0; i < numFaces; i++)
    {
       rigTemp = RigTForm(faceTranslations[i]);
       rigTemp.setRotation(rigTemp.getRotation() * Quat().makeRotation(faceRotations[i]));
-      faces[i] = new RigidBody(rigTemp, scaleTemp, NULL, initPlane(), blue, SOLID);
+      if (i < 8)
+         faces[i] = new RigidBody(rigTemp, scaleTemp, NULL, initRightTriangle(), grey, SOLID);
+      else
+         faces[i] = new RigidBody(rigTemp, scaleTemp, NULL, initTriangle(), grey, SOLID);
       faces[i]->mode = GL_TRIANGLES;
    }
 
@@ -344,6 +512,8 @@ static RigidBody* buildEpilepticCubeOfDoomTM()
    i += numEdges;
    for (int j = 0; j < numFaces; j++)
       container->children[i + j] = faces[j];
+
+   buildWingEdgedCube(vertices, edges, faces);
 
    return container;
 }

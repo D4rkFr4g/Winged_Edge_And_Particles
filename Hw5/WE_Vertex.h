@@ -15,6 +15,6 @@ public:
 
    // Variables
    std::vector<WE_Edge*> edges;
-   RigidBody data;
+   RigidBody* data;
 };
 

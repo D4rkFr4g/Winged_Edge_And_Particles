@@ -252,7 +252,7 @@ void makeCylinder(int slices, float radius, float height, VtxOutIter vtxIter, Id
 }
 /*-----------------------------------------------*/
 template<typename VtxOutIter, typename IdxOutIter>
-void makeTriangle(VtxOutIter vtxIter, IdxOutIter idxIter) 
+void makeRightTriangle(VtxOutIter vtxIter, IdxOutIter idxIter) 
 {
    /*	PURPOSE:		Sets up index and vertex buffersfor a triangle
       RECEIVES:
@@ -262,12 +262,12 @@ void makeTriangle(VtxOutIter vtxIter, IdxOutIter idxIter)
 
 	using namespace std;
 
-	float startX = sqrt(0.75) / 2.0;
+   float h = 0.5;
 
 	Cvec3f *threePoints = new Cvec3f[3];
-	threePoints[0] = Cvec3f(-startX, 0, 0); 
-	threePoints[1] = Cvec3f(startX, -0.5, 0);
-	threePoints[2] = Cvec3f(startX, 0.5, 0);
+	threePoints[0] = Cvec3f(-h, -h, 0); 
+	threePoints[1] = Cvec3f(h, -h, 0);
+	threePoints[2] = Cvec3f(-h, h, 0);
 	
 	for (int i = 0; i < 3; i++)
 	{
@@ -291,6 +291,48 @@ void makeTriangle(VtxOutIter vtxIter, IdxOutIter idxIter)
 	idxIter[0] = 0;
 	idxIter[1] = 1;
 	idxIter[2] = 2;
+}
+/*-----------------------------------------------*/
+template<typename VtxOutIter, typename IdxOutIter>
+void makeTriangle(VtxOutIter vtxIter, IdxOutIter idxIter)
+{
+   /*	PURPOSE:		Sets up index and vertex buffersfor a triangle
+   RECEIVES:
+   RETURNS:
+   REMARKS:
+   */
+
+   using namespace std;
+
+   float h = 0.5;
+
+   Cvec3f *threePoints = new Cvec3f[3];
+   threePoints[0] = Cvec3f(-h, -h, 0);
+   threePoints[1] = Cvec3f(h, -h, 0);
+   threePoints[2] = Cvec3f(0, 0, 0);
+
+   for (int i = 0; i < 3; i++)
+   {
+      float x = threePoints[i][0];
+      float y = threePoints[i][1];
+      float z = threePoints[i][2];
+
+      Cvec3f n(x, y, z);
+      Cvec3f t(-x, y, 0);
+      Cvec3f b = cross(n, t);
+
+      *vtxIter = GenericVertex(
+         x, y, z,
+         n[0], n[1], n[2],
+         1.0 / i, 1.0 / 2 * i,
+         t[0], t[1], t[2],
+         b[0], b[1], b[2]);
+      ++vtxIter;
+   }
+
+   idxIter[0] = 0;
+   idxIter[1] = 1;
+   idxIter[2] = 2;
 }
 /*-----------------------------------------------*/
 template<typename VtxOutIter, typename IdxOutIter>
