@@ -33,7 +33,7 @@ const bool MySdlApplication::G_GL2_COMPATIBLE = false;
 static const float G_CAM_ROTATION = 1;
 static const float G_FRUST_MIN_FOV = 60.0;  //A minimal of 60 degree field of view
 static const unsigned char* KB_STATE = NULL;
-static const int G_NUM_OF_OBJECTS = 2; //Number of objects to be drawn
+static const int G_NUM_OF_OBJECTS = 1; //Number of objects to be drawn
 static const int G_NUM_SHADERS = 7;
 static const char * const G_SHADER_FILES[G_NUM_SHADERS][2] =
 {
@@ -71,6 +71,7 @@ static bool g_mouseLClickButton, g_mouseRClickButton, g_mouseMClickButton;
 static int g_mouseClickX, g_mouseClickY; // coordinates for mouse click event
 static int g_activeShader = 0;
 SDL_TimerID g_animationTimer;
+SDL_TimerID g_animationReset;
 static bool g_isAnimating = false;
 static bool g_isParticulating = false;
 static WE_Vertex* g_EcodTM_Vertex;
@@ -466,8 +467,8 @@ static void buildEdges()
    edge->bNext = &g_weEdges[15];
 
    edge = &g_weEdges[16];
-   edge->vert1 = &g_weVertices[5];
-   edge->vert2 = &g_weVertices[8];
+   edge->vert1 = &g_weVertices[8];
+   edge->vert2 = &g_weVertices[5];
    edge->aFace = &g_weFaces[8];
    edge->bFace = &g_weFaces[9];
    edge->aPrev = &g_weEdges[4];
@@ -486,8 +487,8 @@ static void buildEdges()
    edge->bNext = &g_weEdges[18];
 
    edge = &g_weEdges[18];
-   edge->vert1 = &g_weVertices[7];
-   edge->vert2 = &g_weVertices[8];
+   edge->vert1 = &g_weVertices[8];
+   edge->vert2 = &g_weVertices[7];
    edge->aFace = &g_weFaces[10];
    edge->bFace = &g_weFaces[11];
    edge->aPrev = &g_weEdges[6];
@@ -506,8 +507,8 @@ static void buildEdges()
    edge->bNext = &g_weEdges[16];
    
    edge = &g_weEdges[20];
-   edge->vert1 = &g_weVertices[1];
-   edge->vert2 = &g_weVertices[9];
+   edge->vert1 = &g_weVertices[9];
+   edge->vert2 = &g_weVertices[1];
    edge->aFace = &g_weFaces[12];
    edge->bFace = &g_weFaces[13];
    edge->aPrev = &g_weEdges[0];
@@ -526,8 +527,8 @@ static void buildEdges()
    edge->bNext = &g_weEdges[22];
 
    edge = &g_weEdges[22];
-   edge->vert1 = &g_weVertices[3];
-   edge->vert2 = &g_weVertices[9];
+   edge->vert1 = &g_weVertices[9];
+   edge->vert2 = &g_weVertices[3];
    edge->aFace = &g_weFaces[14];
    edge->bFace = &g_weFaces[15];
    edge->aPrev = &g_weEdges[2];
@@ -833,7 +834,7 @@ static void initEpilepticCubeOfDoomTM()
    RigidBody *EcodTM;
    EcodTM = buildEpilepticCubeOfDoomTM();
    EcodTM->rtf.setTranslation(Cvec3(0, 0, 0));
-   g_rigidBodies[1] = *EcodTM;
+   g_rigidBodies[0] = *EcodTM;
 }
 /*-----------------------------------------------*/
 static void initGround()
@@ -854,6 +855,13 @@ static void initGround()
    };
    unsigned short idx[] = { 0, 1, 2, 0, 2, 3 };
    g_ground.reset(new MySdlApplication::Geometry(&vtx[0], &idx[0], 4, 6));
+}
+/*-----------------------------------------------*/
+Uint32 animationReset(Uint32 interval, void *param)
+{
+   g_isParticulating = false;
+   
+   return 0;
 }
 /*-----------------------------------------------*/
 Uint32 animateEcodTM(Uint32 interval, void *param)
@@ -954,10 +962,9 @@ Uint32 animateEcodTM(Uint32 interval, void *param)
 
    if (isAnimating)
    {
-      float alpha = elapsedTime / totalTime;
+      //float alpha = elapsedTime / totalTime;
 
       //Handle Animation
-      
       for (int i = 0; i < animatedParts.size(); i++)
          animatedParts[i]->color = colors[colorIndex];
 
@@ -1489,9 +1496,9 @@ void MySdlApplication::keyboard()
       if (g_activeShader >= G_NUM_SHADERS)
          g_activeShader = 0;
 
-      g_rigidBodies[1].children[0]->material++;
-      if (g_rigidBodies[1].children[0]->material >= G_NUM_SHADERS)
-         g_rigidBodies[1].children[0]->material = 0;
+      g_rigidBodies[0].children[0]->material++;
+      if (g_rigidBodies[0].children[0]->material >= G_NUM_SHADERS)
+         g_rigidBodies[0].children[0]->material = 0;
    }
    else if (KB_STATE[SDL_SCANCODE_B] && !kbPrevState[SDL_SCANCODE_B])
    {
@@ -1499,7 +1506,9 @@ void MySdlApplication::keyboard()
       SDL_RemoveTimer(g_animationTimer);
       g_isAnimating = false;
       g_isParticulating = true;
+      g_rigidBodies[0].isChildVisible = false;
 
+      // Create Particles
 
    }
    else if (KB_STATE[SDL_SCANCODE_N])
@@ -1513,6 +1522,13 @@ void MySdlApplication::keyboard()
    {
       Cvec3 cam = g_eyeRbt.getTranslation();
       cout << "camera = <" << cam[0] << ", " << cam[1] << ", " << cam[2] << ">" << endl;
+   }
+
+   if (!KB_STATE[SDL_SCANCODE_B] && kbPrevState[SDL_SCANCODE_B])
+   {
+      // Call timer for animation reset
+      float msToWait = 6.0 * 1000;
+      g_animationReset = SDL_AddTimer(msToWait, animationReset, (void *) "animationTimer Callback");
    }
 }
 /*-----------------------------------------------*/
@@ -1562,7 +1578,10 @@ void MySdlApplication::motion(const int x, const int y)
    {
       // left button down?
       //m = g_eyeRbt * RigTForm(Quat().makeXRotation(-dy)) * RigTForm(Quat().makeYRotation(dx)) * inv(g_eyeRbt);
-      m = g_rigidBodies[0].rtf * RigTForm(Quat().makeXRotation(-dy)) * RigTForm(Quat().makeYRotation(dx)) * inv(g_rigidBodies[0].rtf);
+      //m = g_rigidBodies[0].rtf * RigTForm(Quat().makeXRotation(-dy)) * RigTForm(Quat().makeYRotation(dx)) * inv(g_rigidBodies[0].rtf);
+
+      Quat rot = g_eyeRbt.getRotation() * Quat().makeXRotation(-dy) * Quat().makeYRotation(dx) * inv(g_eyeRbt.getRotation());
+      m.setRotation(rot);
    }
    else if (g_mouseRClickButton && !g_mouseLClickButton)
    {
@@ -1574,11 +1593,12 @@ void MySdlApplication::motion(const int x, const int y)
       // middle or (left and right) button down?
       //m = RigTForm(Cvec3(0, 0, -dy) * 0.01);
       m = g_eyeRbt * RigTForm(Cvec3(0, 0, dy) * 0.01) * inv(g_eyeRbt);
+      //m = g_rigidBodies[0].rtf * RigTForm(Cvec3(0,0,dy) * 0.01) * inv(g_rigidBodies[0].rtf);
    }
 
    if (g_mouseClickDown)
-      //g_rigidBodies[0].rtf = m * g_rigidBodies[0].rtf;
-      g_eyeRbt = m * g_eyeRbt;
+      g_rigidBodies[0].rtf = m * g_rigidBodies[0].rtf;
+      //g_eyeRbt = m * g_eyeRbt;
 
    g_mouseClickX = x;
    g_mouseClickY = g_windowHeight - y - 1;
@@ -1603,6 +1623,7 @@ void MySdlApplication::onLoop()
       float msecsPerFrame = 1 / (fps / 1000.0);
       g_animationTimer = SDL_AddTimer(msecsPerFrame, animateEcodTM, (void *) "animationTimer Callback");
       g_isAnimating = true;
+      g_rigidBodies[0].isChildVisible = true;
    }
 }
 /*-----------------------------------------------*/

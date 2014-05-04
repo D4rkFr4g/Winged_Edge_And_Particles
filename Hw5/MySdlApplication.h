@@ -154,11 +154,6 @@ public:
             GL_STATIC_DRAW);
       }
       /*-----------------------------------------------*/
-      ~Geometry()
-      {
-
-      }
-      /*-----------------------------------------------*/
       void draw(const ShaderState& curSS, GLenum mode)
       {
          /*	PURPOSE:		Draws an OpenGL object
@@ -192,6 +187,7 @@ public:
          glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 
          // draw!
+         glPointSize(3);
          glDrawElements(mode, iboLen, GL_UNSIGNED_SHORT, 0);
 
          // Disable the attributes used by our shader

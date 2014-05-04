@@ -14,11 +14,11 @@ Done -	The edges of the cube should be colored black, and the background of the
 Done -	The viewpoint should be at +5 units along the z-axis, 2 units up. I don't 
 	care what light effects you use in the fragment shader. 
 	
--	Once launched, your program should start an animation, at each phase in the 
+Done -	Once launched, your program should start an animation, at each phase in the 
 	animation the item being illustrated for that phase should cycle through the 
 	three colors dark red, dark blue, and dark green for 1/4 of a second. 
 	
--	The animation traverses each vertex among the vertices in your cube, 
+Done -	The animation traverses each vertex among the vertices in your cube, 
 	it first flashes red, green, blue the vertex, it then flashes red, green, blue 
 	each edge connected to that vertex, it randomly picks an outgoing edge flashes 
 	it, flashes the two faces adjacent to that edge and proceeds to the vertex on 
@@ -33,11 +33,11 @@ Done -	The viewpoint should be at +5 units along the z-axis, 2 units up. I don't
 -	Each particle should last a random amount of time between two and five seconds.
 	The update step in the motion of the particles should occur in onLoop, and the 
 	drawing occur in onRender. A random number of particles might be generated in 
-	a given onLoop call. Particles need not interact with each other. 
-	
--	Particles should continue to be generated while the b key is pressed. Six 
-	seconds after the b key is released, the system should reset itself and 
-	redraw the initial cube.
+	a given onLoop call. Particles need not interact with each other. Particles should 
+	continue to be generated while the b key is pressed. 
+
+Done -	Six seconds after the b key is released, the system should reset itself and redraw 
+	the initial cube.
 
 
 ///////////////////////
@@ -50,16 +50,17 @@ Done -	Winged-edge representation classes implemented (each class 0.5pts).	1.5pt
 
 Done -	Cube drawn at initial position as described above	1pt
 
--	Animation cycles through three colors as described	1pt
+Done -	Animation cycles through three colors as described	1pt
 
--	Animation flashes vertices, edges, and faces as described (1 pt each).	3pts
+Done -	Animation flashes vertices, edges, and faces as described (1 pt each).	3pts
 
 -	b key causes the cube to be replaced with the explosion sequence.	0.5pts
 
 -	Particle are generated while the b key is pressed (0.5pts), 
-	direction, number of particles generated is random and done in onLoop 
-	as well as a particle updates (1pt).	1.5pts
+	
+-	direction, number of particles generated is random and done in onLoop 
+	as well as a particle updates (1pt).
 
--	Animation reset works as described	1pt
+Done -	Animation reset works as described	1pt
 
 Total	10pts
