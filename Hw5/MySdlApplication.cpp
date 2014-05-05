@@ -21,7 +21,6 @@ using namespace std;
 using namespace tr1;
 
 // Forward Declarations
-struct RigidBody;
 struct ShaderState;
 static const ShaderState& setupShader(int material);
 static Matrix4 makeProjectionMatrix();
@@ -35,26 +34,16 @@ static const float G_CAM_ROTATION = 1;
 static const float G_FRUST_MIN_FOV = 60.0;  //A minimal of 60 degree field of view
 static const unsigned char* KB_STATE = NULL;
 static const int G_NUM_OF_OBJECTS = 1; //Number of objects to be drawn
-static const int G_NUM_SHADERS = 7;
+static const int G_NUM_SHADERS = 2;
 static const char * const G_SHADER_FILES[G_NUM_SHADERS][2] =
 {
    { "./Shaders/basic-gl3.vshader", "./Shaders/diffuse-gl3.fshader" },
-   { "./Shaders/basic-gl3.vshader", "./Shaders/solid-gl3.fshader" },
-   { "./Shaders/basic-gl3.vshader", "./Shaders/texture-gl3.fshader" },
-   { "./Shaders/basic-gl3.vshader", "./Shaders/normal-gl3.fshader" },
-   { "./Shaders/basic-gl3.vshader", "./Shaders/anisotropy-gl3.fshader" },
-   { "./Shaders/basic-gl3.vshader", "./Shaders/cube-gl3.fshader" },
-   { "./Shaders/basic-gl3.vshader", "./Shaders/shiny-gl3.fshader" }
+   { "./Shaders/basic-gl3.vshader", "./Shaders/solid-gl3.fshader" }
 };
 static const char * const G_SHADER_FILES_GL2[G_NUM_SHADERS][2] =
 {
    { "./Shaders/basic-gl2.vshader", "./Shaders/diffuse-gl2.fshader" },
-   { "./Shaders/basic-gl2.vshader", "./Shaders/solid-gl2.fshader" },
-   { "./Shaders/basic-gl2.vshader", "./Shaders/texture-gl2.fshader" },
-   { "./Shaders/basic-gl2.vshader", "./Shaders/normal-gl2.fshader" },
-   { "./Shaders/basic-gl2.vshader", "./Shaders/anisotropy-gl2.fshader" },
-   { "./Shaders/basic-gl2.vshader", "./Shaders/cube-gl2.fshader" },
-   { "./Shaders/basic-gl2.vshader", "./Shaders/shiny-gl2.fshader" }
+   { "./Shaders/basic-gl2.vshader", "./Shaders/solid-gl2.fshader" }
 };
 
 static const float G_FRUST_NEAR = -0.1f;    // near plane
@@ -84,10 +73,7 @@ static WE_Vertex g_weVertices[10];
 static std::vector<Particle*> g_particles;
 
 static float g_frustFovY = G_FRUST_MIN_FOV; // FOV in y direction
-
 static shared_ptr<GlTexture> g_tex0;
-
-/*-----------------------------------------------*/
 
 // --------- Scene
 
@@ -98,7 +84,7 @@ static RigTForm g_skyRbt = RigTForm(Cvec3(0.0, 0.0, 0.0)); // Initialized here b
 static RigTForm g_eyeRbt = g_skyRbt;
 static Cvec3f g_objectColors[1] = { Cvec3f(1, 0, 0) };
 
-///////////////// END OF G L O B A L S ///////////////////////
+
 
 /*-----------------------------------------------*/
 static vector<shared_ptr<MySdlApplication::ShaderState> > g_shaderStates;
@@ -106,6 +92,8 @@ static vector<shared_ptr<MySdlApplication::ShaderState> > g_shaderStates;
 // Vertex buffer and index buffer associated with the ground and cube geometry
 static shared_ptr<MySdlApplication::Geometry> g_ground, g_cube, g_sphere, g_triangle;
 static RigidBody g_rigidBodies[G_NUM_OF_OBJECTS]; // Array that holds each Rigid Body Object
+///////////////// END OF G L O B A L S ///////////////////////
+
 /*-----------------------------------------------*/
 static MySdlApplication::Geometry* initCube()
 {
@@ -151,11 +139,11 @@ static MySdlApplication::Geometry* initSpheres()
 static MySdlApplication::Geometry* initPoint()
 {
    /*	PURPOSE:		Sets up index and vertex buffers and calls geometrymaker for a point
-      RECEIVES:   
+      RECEIVES:
       RETURNS:		Geometry - returns Geometry object representing a point
       REMARKS:
-   */
-   
+      */
+
    int ibLen = 1;
    int vbLen = 1;
 
@@ -265,49 +253,13 @@ static MySdlApplication::Geometry* initTriangle()
    return new MySdlApplication::Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
 /*-----------------------------------------------*/
-static RigidBody* buildCube()
-{
-   /*	PURPOSE:		Builds a cube object
-      RECEIVES:
-      RETURNS:		RigidBody - Returns RigidBody object containing a cube
-      REMARKS:		Cube is inside an invisible container object
-      */
-
-   float width = 1;
-   float height = 1;
-   float thick = 1;
-
-   RigTForm rigTemp = RigTForm(Cvec3(0, 0, 0));
-   Matrix4 scaleTemp = Matrix4();
-
-   // Make container
-   RigidBody *container = new RigidBody(RigTForm(), Matrix4(), NULL, initCube(), Cvec3(0.5, 0.5, 0.5), DIFFUSE);
-   container->isVisible = false;
-   container->name = "container";
-
-   // Make Cube
-   rigTemp = RigTForm(Cvec3(0, 0, 0));
-   scaleTemp = Matrix4::makeScale(Cvec3(width, height, thick));
-
-   RigidBody *cube = new RigidBody(rigTemp, scaleTemp, NULL, initCube(), Cvec3(1, 0, 0), TEXTURE);
-   cube->name = "cube";
-
-   //Setup Children
-   container->numOfChildren = 1;
-   container->children = new RigidBody*[container->numOfChildren];
-   container->children[0] = cube;
-
-   return container;
-
-}
-/*-----------------------------------------------*/
 static void buildEdges()
 {
    /*	PURPOSE:		Builds the edges of the WingedEdge Cube
       RECEIVES:
-      RETURNS:		
-      REMARKS:		
-   */
+      RETURNS:
+      REMARKS:
+      */
 
    // Build all edges
    WE_Edge* edge = &g_weEdges[0];
@@ -499,7 +451,7 @@ static void buildEdges()
    edge->bPrev = &g_weEdges[7];
    edge->aNext = &g_weEdges[17];
    edge->bNext = &g_weEdges[19];
-   
+
    edge = &g_weEdges[19];
    edge->vert1 = &g_weVertices[4];
    edge->vert2 = &g_weVertices[8];
@@ -509,7 +461,7 @@ static void buildEdges()
    edge->bPrev = &g_weEdges[4];
    edge->aNext = &g_weEdges[18];
    edge->bNext = &g_weEdges[16];
-   
+
    edge = &g_weEdges[20];
    edge->vert1 = &g_weVertices[9];
    edge->vert2 = &g_weVertices[1];
@@ -553,6 +505,14 @@ static void buildEdges()
 /*-----------------------------------------------*/
 static void buildWingEdgedCube(RigidBody** vertices, RigidBody** edges, RigidBody** faces)
 {
+   /*	PURPOSE:		Builds the WingedEdge Cube
+      RECEIVES:   vertices - RigidBody array of vertices
+      edges - RigidBody array of edges
+      faces - RigidBody array of faces
+      RETURNS:
+      REMARKS:
+      */
+
    // Create all WE objects for cube
    for (int i = 0; i < 24; i++)
    {
@@ -570,6 +530,7 @@ static void buildWingEdgedCube(RigidBody** vertices, RigidBody** edges, RigidBod
       g_weFaces[i].data = faces[i];
    }
 
+   // Setup pointer for starting vertex
    g_EcodTM_Vertex = &g_weVertices[0];
    g_EcodTM_FirstVertex = &g_weVertices[0];
 
@@ -704,10 +665,10 @@ static void buildWingEdgedCube(RigidBody** vertices, RigidBody** edges, RigidBod
 /*-----------------------------------------------*/
 static RigidBody* buildEpilepticCubeOfDoomTM()
 {
-   /*	PURPOSE:		Builds a Lander object
+   /*	PURPOSE:		Builds an Epileptic Cube of Doom TM object
       RECEIVES:
-      RETURNS:		RigidBody - Returns RigidBody object containing a Lander
-      REMARKS:		Lander is inside an invisible container object
+      RETURNS:		RigidBody - Returns RigidBody object containing a Epileptic Cube of Doom TM
+      REMARKS:		EcodTM is inside an invisible container object
       */
 
    Cvec3 grey = Cvec3(.4, .4, .4);
@@ -732,14 +693,14 @@ static RigidBody* buildEpilepticCubeOfDoomTM()
    RigidBody **vertices = new RigidBody*[numVertices];
 
    float h = 1.0;
-   Cvec3 points[numVertices] = { Cvec3(-h, -h, h), Cvec3(h, -h, h), Cvec3(h,-h,-h), Cvec3(-h,-h,-h),
-      Cvec3(-h, h, h), Cvec3(h, h, h), Cvec3(h, h, -h), Cvec3(-h, h, -h), Cvec3(0,h,0), Cvec3(0,-h,0) };
+   Cvec3 points[numVertices] = { Cvec3(-h, -h, h), Cvec3(h, -h, h), Cvec3(h, -h, -h), Cvec3(-h, -h, -h),
+      Cvec3(-h, h, h), Cvec3(h, h, h), Cvec3(h, h, -h), Cvec3(-h, h, -h), Cvec3(0, h, 0), Cvec3(0, -h, 0) };
 
    scaleTemp = Matrix4::makeScale(Cvec3(2, 2, 2));
    for (int i = 0; i < numVertices; i++)
    {
       rigTemp = RigTForm(points[i]);
-    
+
       vertices[i] = new RigidBody(rigTemp, scaleTemp, NULL, initPoint(), black, SOLID);
       vertices[i]->mode = GL_POINTS;
    }
@@ -748,20 +709,20 @@ static RigidBody* buildEpilepticCubeOfDoomTM()
    const int numEdges = 24;
    RigidBody **edges = new RigidBody*[numEdges];
 
-   Cvec3 edgeTranslations[numEdges] = { 
+   Cvec3 edgeTranslations[numEdges] = {
       /*0*/Cvec3(0, -h, h), Cvec3(h, -h, 0), Cvec3(0, -h, -h), Cvec3(-h, -h, 0),
       /*4*/Cvec3(0, h, h), Cvec3(h, h, 0), Cvec3(0, h, -h), Cvec3(-h, h, 0),
       /*8*/Cvec3(-h, 0, h), Cvec3(0, 0, h), Cvec3(h, 0, h), Cvec3(h, 0, 0),
-      /*12*/Cvec3(h,0,-h), Cvec3(0,0,-h), Cvec3(-h,0,-h), Cvec3(-h,0,0),
-      /*16*/Cvec3(h/2,h,h/2), Cvec3(h/2,h,-h/2), Cvec3(-h/2,h,-h/2), Cvec3(-h/2,h,h/2),
-      /*20*/Cvec3(h/2,-h,h/2), Cvec3(h/2,-h,-h/2), Cvec3(-h/2,-h,-h/2), Cvec3(-h/2,-h,h/2)};
-   Cvec3 edgeRotations[numEdges] = { 
+      /*12*/Cvec3(h, 0, -h), Cvec3(0, 0, -h), Cvec3(-h, 0, -h), Cvec3(-h, 0, 0),
+      /*16*/Cvec3(h / 2, h, h / 2), Cvec3(h / 2, h, -h / 2), Cvec3(-h / 2, h, -h / 2), Cvec3(-h / 2, h, h / 2),
+      /*20*/Cvec3(h / 2, -h, h / 2), Cvec3(h / 2, -h, -h / 2), Cvec3(-h / 2, -h, -h / 2), Cvec3(-h / 2, -h, h / 2) };
+   Cvec3 edgeRotations[numEdges] = {
       /*0*/Cvec3(0, 0, 0), Cvec3(0, -90, 0), Cvec3(0, 180, 0), Cvec3(0, 90, 0),
       /*4*/Cvec3(0, 0, 0), Cvec3(0, -90, 0), Cvec3(0, 180, 0), Cvec3(0, 90, 0),
       /*8*/Cvec3(0, 0, 90), Cvec3(0, 0, 45), Cvec3(0, 0, 90), Cvec3(45, -90, 0),
-      /*12*/Cvec3(0,0,90), Cvec3(0,180,45), Cvec3(0,0,90), Cvec3(-45,-90,0),
-      /*16*/Cvec3(0,-45,0), Cvec3(0,45,0), Cvec3(0,-45,0), Cvec3(0,45,0),
-      /*20*/Cvec3(0,-45,0), Cvec3(0,45,0), Cvec3(0,-45,0), Cvec3(0,45,0)};
+      /*12*/Cvec3(0, 0, 90), Cvec3(0, 180, 45), Cvec3(0, 0, 90), Cvec3(-45, -90, 0),
+      /*16*/Cvec3(0, -45, 0), Cvec3(0, 45, 0), Cvec3(0, -45, 0), Cvec3(0, 45, 0),
+      /*20*/Cvec3(0, -45, 0), Cvec3(0, 45, 0), Cvec3(0, -45, 0), Cvec3(0, 45, 0) };
 
    for (int i = 0; i < numEdges; i++)
    {
@@ -789,7 +750,7 @@ static RigidBody* buildEpilepticCubeOfDoomTM()
       /*0*/Cvec3(0, 0, h), Cvec3(0, 0, h), Cvec3(h, 0, 0), Cvec3(h, 0, 0),
       /*4*/Cvec3(0, 0, -h), Cvec3(0, 0, -h), Cvec3(-h, 0, 0), Cvec3(-h, 0, 0),
       /*8*/Cvec3(0, h, 0), Cvec3(0, h, 0), Cvec3(0, h, 0), Cvec3(0, h, 0),
-      /*12*/Cvec3(0, -h, 0), Cvec3(0, -h, 0), Cvec3(0, -h, 0), Cvec3(0, -h, 0)};
+      /*12*/Cvec3(0, -h, 0), Cvec3(0, -h, 0), Cvec3(0, -h, 0), Cvec3(0, -h, 0) };
    Cvec3 faceRotations[numFaces] = {
       /*0*/Cvec3(0, 0, -90), Cvec3(0, 0, 90), Cvec3(0, 90, -90), Cvec3(0, 90, 90),
       /*4*/Cvec3(0, 180, -90), Cvec3(0, 180, 90), Cvec3(90, -90, 0), Cvec3(-90, -90, 0),
@@ -810,7 +771,7 @@ static RigidBody* buildEpilepticCubeOfDoomTM()
    //Setup Children
    container->numOfChildren = numVertices + numEdges + numFaces;
    container->children = new RigidBody*[container->numOfChildren];
-   
+
    int i = 0;
    for (int j = 0; j < numVertices; j++)
       container->children[i + j] = vertices[j];
@@ -864,9 +825,16 @@ static void initGround()
 /*-----------------------------------------------*/
 Uint32 animationReset(Uint32 interval, void *param)
 {
+   /*	PURPOSE:		Callback timer function to reset the animation
+      RECEIVES:   interval - The time that has passed for the callback
+      param - An array of parameters
+      RETURNS:    Interval to wait till next callback
+      REMARKS:
+      */
+
    g_isParticulating = false;
    g_EcodTM_Vertex = g_EcodTM_FirstVertex;
-   
+
    return 0;
 }
 /*-----------------------------------------------*/
@@ -874,12 +842,12 @@ Uint32 animateEcodTM(Uint32 interval, void *param)
 {
    /*	PURPOSE:		Animates EcodTM to flash crazily
       RECEIVES:   interval - time period that has passed
-      RETURNS:
+      RETURNS:    Interval to wait till next callback
       REMARKS:
-   */
+      */
 
    static float stopwatch = 0;
-   float msecsPerFrame = interval;
+   float msecsPerFrame = (float) interval;
    static int animationPart = 0;
    static int animationParts = 4;
    static bool isAnimating = true;
@@ -895,7 +863,7 @@ Uint32 animateEcodTM(Uint32 interval, void *param)
    static vector<RigidBody*> animatedParts;
    static WE_Edge* randoEdge;
 
-   
+
    // Used to reset variables every time animation is run
    if (isFirstEntry)
    {
@@ -918,18 +886,18 @@ Uint32 animateEcodTM(Uint32 interval, void *param)
       else if (animationPart == 1)
       {
          // Reset colors
-         for (int i = 0; i < animatedParts.size(); i++)
+         for (int i = 0; i < (int) animatedParts.size(); i++)
             animatedParts[i]->color = animatedParts[i]->originalColor;
 
          // Set Vertex's Edges
          animatedParts.clear();
-         for (int i = 0; i < g_EcodTM_Vertex->edges.size(); i++)
+         for (int i = 0; i < (int) g_EcodTM_Vertex->edges.size(); i++)
             animatedParts.push_back(g_EcodTM_Vertex->edges[i]->data);
       }
       else if (animationPart == 2)
       {
          // Reset colors
-         for (int i = 0; i < animatedParts.size(); i++)
+         for (int i = 0; i < (int) animatedParts.size(); i++)
             animatedParts[i]->color = animatedParts[i]->originalColor;
 
          // Select Random Edge
@@ -943,7 +911,7 @@ Uint32 animateEcodTM(Uint32 interval, void *param)
       else if (animationPart == 3)
       {
          // Reset colors
-         for (int i = 0; i < animatedParts.size(); i++)
+         for (int i = 0; i < (int) animatedParts.size(); i++)
             animatedParts[i]->color = animatedParts[i]->originalColor;
 
          // Set Random Edge's Faces
@@ -955,7 +923,7 @@ Uint32 animateEcodTM(Uint32 interval, void *param)
       else
       {
          // Reset colors
-         for (int i = 0; i < animatedParts.size(); i++)
+         for (int i = 0; i < (int) animatedParts.size(); i++)
             animatedParts[i]->color = animatedParts[i]->originalColor;
 
          animatedParts.clear();
@@ -968,10 +936,8 @@ Uint32 animateEcodTM(Uint32 interval, void *param)
 
    if (isAnimating)
    {
-      //float alpha = elapsedTime / totalTime;
-
       //Handle Animation
-      for (int i = 0; i < animatedParts.size(); i++)
+      for (int i = 0; i < (int) animatedParts.size(); i++)
          animatedParts[i]->color = colors[colorIndex];
 
       colorIndex++;
@@ -1059,15 +1025,12 @@ static float angleBetween(Cvec3 vectorOne, Cvec3 vectorTwo)
       REMARKS:
       */
 
-   float temp = dot(vectorOne, vectorTwo);
-   float vOneNorm = norm(vectorOne);
-   float vTwoNorm = norm(vectorTwo);
+   float temp = (float) dot(vectorOne, vectorTwo);
+   float vOneNorm = (float) norm(vectorOne);
+   float vTwoNorm = (float) norm(vectorTwo);
    temp = (temp / (vOneNorm * vTwoNorm));
    temp = acos(temp) * 180;
-   temp /= M_PI;
-
-   //cout << "angle = " << temp << "\n";
-   //Matrix4::print(Matrix4::makeXRotation(temp));
+   temp /= (float) M_PI;
 
    return temp;
 }
@@ -1355,29 +1318,6 @@ static void initTextures()
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-   /*g_tex1.reset(new GlTexture());
-
-   loadSphereNormalTexture(GL_TEXTURE1, *g_tex1);
-
-   glActiveTexture(GL_TEXTURE1);
-   glBindTexture(GL_TEXTURE_2D, *g_tex1);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);*/
-
-   ////Crater
-   //g_tex2.reset(new GlTexture());
-
-   //loadTexture(GL_TEXTURE2, *g_tex2, "./Images/crater2.png", g_sampleWidth, g_sampleHeight);
-
-   //glActiveTexture(GL_TEXTURE2);
-   //glBindTexture(GL_TEXTURE_2D, *g_tex2);
-   //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-   //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-   //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-   //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 }
 /*-----------------------------------------------*/
 static void drawStuff()
@@ -1424,7 +1364,7 @@ static void drawStuff()
       g_rigidBodies[i].drawRigidBody(invEyeRbt);
 
    // Draw all Particles
-   for (int i = 0; i < g_particles.size(); i++)
+   for (int i = 0; i < (int) g_particles.size(); i++)
       g_particles[i]->data->drawRigidBody(invEyeRbt);
 }
 /*-----------------------------------------------*/
@@ -1479,7 +1419,6 @@ static void reshape(const int w, const int h)
    g_windowWidth = w;
    g_windowHeight = h;
    glViewport(0, 0, w, h);
-   cerr << "Size of window is now " << w << "x" << h << endl; // TODO remove this line
    updateFrustFovY();
 }
 /*-----------------------------------------------*/
@@ -1512,7 +1451,7 @@ void MySdlApplication::keyboard()
    }
    else if (KB_STATE[SDL_SCANCODE_B])
    {
-      // Particle stuff goes here
+      // Setup for particle animation
       SDL_RemoveTimer(g_animationTimer);
       g_isAnimating = false;
       g_isParticulating = true;
@@ -1520,8 +1459,6 @@ void MySdlApplication::keyboard()
 
       // Create Particles
       int numParticles = rand() % 20 + 1;
-      //int numParticles = 1;
-
       for (int i = 0; i < numParticles; i++)
       {
          Particle* p = Particle::createRandomParticle();
@@ -1532,7 +1469,9 @@ void MySdlApplication::keyboard()
       }
    }
    else if (KB_STATE[SDL_SCANCODE_N])
+   {
       g_isParticulating = false;
+   }
    else if (KB_STATE[SDL_SCANCODE_ESCAPE])
    {
       // End program
@@ -1548,7 +1487,7 @@ void MySdlApplication::keyboard()
    {
       // Call timer for animation reset
       float msToWait = 6.0 * 1000;
-      g_animationReset = SDL_AddTimer(msToWait, animationReset, (void *) "animationTimer Callback");
+      g_animationReset = SDL_AddTimer((Uint32) msToWait, animationReset, (void *) "animationTimer Callback");
    }
 }
 /*-----------------------------------------------*/
@@ -1612,23 +1551,24 @@ void MySdlApplication::motion(const int x, const int y)
    {
       // middle or (left and right) button down?
       //m = RigTForm(Cvec3(0, 0, -dy) * 0.01);
-      m = g_eyeRbt * RigTForm(Cvec3(0, 0, dy) * 0.01) * inv(g_eyeRbt);
       //m = g_rigidBodies[0].rtf * RigTForm(Cvec3(0,0,dy) * 0.01) * inv(g_rigidBodies[0].rtf);
+      m = g_eyeRbt * RigTForm(Cvec3(0, 0, dy) * 0.01) * inv(g_eyeRbt);
    }
 
    if (g_mouseClickDown)
       g_rigidBodies[0].rtf = m * g_rigidBodies[0].rtf;
-      //g_eyeRbt = m * g_eyeRbt;
+   //g_eyeRbt = m * g_eyeRbt;
 
    g_mouseClickX = x;
    g_mouseClickY = g_windowHeight - y - 1;
-
 }
 /*-----------------------------------------------*/
 void MySdlApplication::onLoop(int tick, int* prevPhysicsTick, int ticksPerPhysics)
 {
    /*	PURPOSE:		Handles function calls that need to run once per SDL loop
-      RECEIVES:
+      RECEIVES:   tick - current time in ms that program has been running
+      prevPhysicsTick - Time in ms since last physics tick
+      ticksPerPhysics - Time in between phsysics ticks in ms
       RETURNS:
       REMARKS:
       */
@@ -1636,12 +1576,11 @@ void MySdlApplication::onLoop(int tick, int* prevPhysicsTick, int ticksPerPhysic
    // Logic goes here
    keyboard();
 
-
    while (tick > *prevPhysicsTick + ticksPerPhysics)
    {
       // Update particles
       bool areDeadParticles = false;
-      for (int i = 0; i < g_particles.size(); i++)
+      for (int i = 0; i < (int) g_particles.size(); i++)
       {
          g_particles[i]->updateParticle(ticksPerPhysics);
          if (!areDeadParticles && !g_particles[i]->isAlive)
@@ -1665,8 +1604,8 @@ void MySdlApplication::onLoop(int tick, int* prevPhysicsTick, int ticksPerPhysic
    if (!g_isAnimating && !g_isParticulating)
    {
       float fps = 30.0;
-      float msecsPerFrame = 1 / (fps / 1000.0);
-      g_animationTimer = SDL_AddTimer(msecsPerFrame, animateEcodTM, (void *) "animationTimer Callback");
+      float msecsPerFrame = (float) (1 / (fps / 1000.0));
+      g_animationTimer = SDL_AddTimer((Uint32) msecsPerFrame, animateEcodTM, (void *) "animationTimer Callback");
       g_isAnimating = true;
       g_rigidBodies[0].isChildVisible = true;
    }
@@ -1684,6 +1623,7 @@ void MySdlApplication::onRender()
    glUseProgram(g_shaderStates[g_activeShader]->program);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    // clear framebuffer color&depth
+
    drawStuff();
 
    SDL_GL_SwapWindow(display);
@@ -1702,7 +1642,7 @@ int MySdlApplication::onExecute()
 
    if (onInit() == false)
       return -1;
-   
+
    int prevTick = SDL_GetTicks();
    int ticksPerPhysics = 1000 / 100;
    int prevPhysicsTick = prevTick;
@@ -1852,19 +1792,3 @@ int main(int argc, const char* argv[])
    MySdlApplication application;
    return application.onExecute();
 }
-
-
-// TODO (REMOVE before Submission)
-//Coding Guidelines template 
-
-/*-----------------------------------------------*/
-
-
-/*	PURPOSE:		What does this function do? (must be present)
-   RECEIVES:	List every argument name and explain each argument.
-   (omit if the function has no arguments)
-   RETURNS:		Explain the value returned by the function.
-   (omit if the function returns no value)
-   REMARKS:		Explain any special preconditions or postconditions.
-   See example below. (omit if function is unremarkable)
-   */

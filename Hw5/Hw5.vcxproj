@@ -115,6 +115,8 @@
     <None Include="Shaders\normal-gl3.fshader" />
     <None Include="Shaders\shiny-gl2.fshader" />
     <None Include="Shaders\shiny-gl3.fshader" />
+    <None Include="Shaders\solid-gl2.fshader" />
+    <None Include="Shaders\solid-gl3.fshader" />
     <None Include="Shaders\terrain-gl2.fshader" />
     <None Include="Shaders\terrain-gl2.vshader" />
     <None Include="Shaders\terrain-gl3.fshader" />

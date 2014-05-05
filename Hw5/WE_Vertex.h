@@ -5,7 +5,6 @@
 #include "RigidBody.h"
 
 
-
 class WE_Vertex
 {
 public:

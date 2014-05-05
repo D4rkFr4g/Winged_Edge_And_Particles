@@ -21,7 +21,6 @@ public:
    void draw(RigTForm respectFrame_, Matrix4 respectScale_);
    void draw(Matrix4 respectFrame_);
 
-
    // Variables
    RigTForm rtf;
    Matrix4 scale;
@@ -38,6 +37,5 @@ public:
 
    // Enum
    enum { DIFFUSE, SOLID, TEXTURE, NORMAL, ANISOTROPY, CUBE, SHINY };
-
 };
 #endif

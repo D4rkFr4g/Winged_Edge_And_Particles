@@ -22,7 +22,9 @@
     <ClCompile Include="RigidBody.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Particle.cpp" />
+    <ClCompile Include="Particle.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cvec.h">
@@ -58,7 +60,9 @@
     <ClInclude Include="RigidBody.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Particle.h" />
+    <ClInclude Include="Particle.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="TODO.txt" />
@@ -123,6 +127,12 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\terrain-gl3.vshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\solid-gl2.fshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\solid-gl3.fshader">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

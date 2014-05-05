@@ -99,20 +99,17 @@ public:
          h_uModelViewMatrix = safe_glGetUniformLocation(h, "uModelViewMatrix");
          h_uNormalMatrix = safe_glGetUniformLocation(h, "uNormalMatrix");
          h_uColor = safe_glGetUniformLocation(h, "uColor");
-         h_uTexUnit0 = safe_glGetUniformLocation(h, "uTexUnit0");
-         h_uTexUnit1 = safe_glGetUniformLocation(h, "uTexUnit1");
-         h_uTexUnit2 = safe_glGetUniformLocation(h, "uTexUnit2");
-         h_uSamples = safe_glGetUniformLocation(h, "uSamples");
-         h_uSampledx = safe_glGetUniformLocation(h, "uSampledx");
-         h_uSampledy = safe_glGetUniformLocation(h, "uSampledy");
+         //h_uTexUnit0 = safe_glGetUniformLocation(h, "uTexUnit0");
+         //h_uTexUnit1 = safe_glGetUniformLocation(h, "uTexUnit1");
+         //h_uTexUnit2 = safe_glGetUniformLocation(h, "uTexUnit2");
 
          // Retrieve handles to vertex attributes
          h_aPosition = safe_glGetAttribLocation(h, "aPosition");
          h_aNormal = safe_glGetAttribLocation(h, "aNormal");
-         h_aTangent = safe_glGetAttribLocation(h, "aTangent");
+         /*h_aTangent = safe_glGetAttribLocation(h, "aTangent");
          h_aTexCoord0 = safe_glGetAttribLocation(h, "aTexCoord0");
          h_aTexCoord1 = safe_glGetAttribLocation(h, "aTexCoord1");
-         h_aTexCoord2 = safe_glGetAttribLocation(h, "aTexCoord2");
+         h_aTexCoord2 = safe_glGetAttribLocation(h, "aTexCoord2");*/
 
          if (!G_GL2_COMPATIBLE)
             glBindFragDataLocation(h, 0, "fragColor");
@@ -188,7 +185,7 @@ public:
          glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 
          // draw!
-         
+
          glPointSize(3);
          glLineWidth(2);
          glDrawElements(mode, iboLen, GL_UNSIGNED_SHORT, 0);

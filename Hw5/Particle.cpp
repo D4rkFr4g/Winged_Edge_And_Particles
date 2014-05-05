@@ -49,9 +49,8 @@ void Particle::updateParticle(int ms)
       RECEIVES:	ms - Time in ms since last frame
       RETURNS:
       REMARKS:
-   */
+      */
 
-   this;
    // Update Life timers
    life += ms;
    if (life >= lifeSpan)
@@ -76,7 +75,7 @@ void Particle::updateParticle(int ms)
    data->rtf.setTranslation(Cvec3(x, y, z));
 
    // Update color
-   colorAlpha = 1 - (colorLife / (lifeSpan / 3.0));
+   colorAlpha = (float)( 1 - (colorLife / (lifeSpan / 3.0)));
    color[colorPhase] = colorAlpha;
    data->color = color;
 }
@@ -87,7 +86,7 @@ bool Particle::testAlive(Particle* p)
       RECEIVES:	p - particle to be tested
       RETURNS:    true if particle is alive otherwise false
       REMARKS:    Created mostly to be used with std vector remove_if
-   */
+      */
 
    return p->isAlive;
 }
@@ -95,30 +94,30 @@ bool Particle::testAlive(Particle* p)
 Particle* Particle::createRandomParticle()
 {
    /*	PURPOSE:		Creates a particle with a random speed, direction, and life
-      RECEIVES:	
-      RETURNS:    Random particle
+      RECEIVES:
+      RETURNS:    pointer to Random particle
       REMARKS:    starts at origin and shoots out from there
-   */
-   
+      */
+
    Particle* p = new Particle();
 
    // Random Life
    p->lifeSpan = rand() % 3001 + 2000; // Between 2-5 seconds
 
    // Random Speed
-   float low = 0.01;
-   float high = 0.05;
+   float low = (float) 0.01;
+   float high = (float) 0.05;
    float diff = high - low;
    float random = (float)rand() / RAND_MAX;
    float r = random * diff;
    p->xSpeed = low + r;
    random = (float)rand() / RAND_MAX;
-   r = random * (diff + 0.05);
+   r = (float) (random * (diff + 0.05));
    p->ySpeed = low + r;
    random = (float)rand() / RAND_MAX;
    r = random * diff;
    p->zSpeed = low + r;
-   
+
    // Random direction
    if ((rand() % 2) == 1)
       p->xSpeed *= -1;
@@ -128,10 +127,10 @@ Particle* Particle::createRandomParticle()
       p->zSpeed *= -1;
 
    // Random gravity variation
-   low = 0.0005;
-   high = 0.001;
+   low = (float) 0.0005;
+   high = (float) 0.001;
    diff = high - low;
-   random = (float) rand() / RAND_MAX;
+   random = (float)rand() / RAND_MAX;
    r = random * diff;
    p->gravity = low + r;
 

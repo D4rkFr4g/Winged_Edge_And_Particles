@@ -1,20 +1,22 @@
 #version 130
 
-uniform vec3 uLight, uLight2, uColor;
+uniform vec3 uLight, uColor;
+uniform vec3 uLight2;
 
 in vec3 vNormal;
 in vec3 vPosition;
 
 out vec4 fragColor;
 
-void main() {
-  vec3 tolight = normalize(uLight - vPosition);
-  vec3 tolight2 = normalize(uLight2 - vPosition);
-  vec3 normal = normalize(vNormal);
+void main() 
+{
+   vec3 tolight = normalize(uLight - vPosition);
+   vec3 tolight2 = normalize(uLight2 - vPosition);
+   vec3 normal = normalize(vNormal);
 
-  float diffuse = max(0.0, dot(normal, tolight));
-  diffuse += max(0.0, dot(normal, tolight2));
-  vec3 intensity = uColor * diffuse;
+   float diffuse = max(0.0, dot(normal, tolight));
+   diffuse += max(0.0, dot(normal, tolight2));
+   vec3 intensity = uColor * diffuse;
 
-  fragColor = vec4(intensity, 1.0);
+   fragColor = vec4(intensity, 1.0);
 }

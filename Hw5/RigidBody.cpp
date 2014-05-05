@@ -86,7 +86,7 @@ void RigidBody::draw(RigTForm respectFrame_, Matrix4 respectScale_)
       respectScale_ - Parent Object scale
       RETURNS:
       REMARKS:		 Recursive function
-   */
+      */
 
    const MySdlApplication::ShaderState& curSS = MySdlApplication::setupShader(material);
 

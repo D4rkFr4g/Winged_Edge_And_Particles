@@ -5,6 +5,7 @@
 class Particle
 {
 public:
+   // Constructors
    Particle();
    Particle(RigidBody* data, int lifeSpan, float x, float y, float z, float xSpeed, float ySpeed,
       float zSpeed, float gravity);
@@ -18,7 +19,7 @@ public:
    // Variables
    int life, lifeSpan;
    int colorPhase, colorLife;
-   float x, y, z; 
+   float x, y, z;
    float colorAlpha;
    float xSpeed, ySpeed, zSpeed, gravity;
    Cvec3 color;
