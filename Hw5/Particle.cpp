@@ -94,11 +94,17 @@ bool Particle::testAlive(Particle* p)
 /*-----------------------------------------------*/
 Particle* Particle::createRandomParticle()
 {
+   /*	PURPOSE:		Creates a particle with a random speed, direction, and life
+      RECEIVES:	
+      RETURNS:    Random particle
+      REMARKS:    starts at origin and shoots out from there
+   */
+   
    Particle* p = new Particle();
 
    // Random Life
-   p->lifeSpan = rand() % 2000 + 2000; // Between 2-4 seconds
-   
+   p->lifeSpan = rand() % 3001 + 2000; // Between 2-5 seconds
+
    // Random Speed
    float low = 0.01;
    float high = 0.05;
@@ -122,8 +128,8 @@ Particle* Particle::createRandomParticle()
       p->zSpeed *= -1;
 
    // Random gravity variation
-   low = 0.001;
-   high = 0.002;
+   low = 0.0005;
+   high = 0.001;
    diff = high - low;
    random = (float) rand() / RAND_MAX;
    r = random * diff;

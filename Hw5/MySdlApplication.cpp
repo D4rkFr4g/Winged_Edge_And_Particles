@@ -866,7 +866,6 @@ Uint32 animationReset(Uint32 interval, void *param)
 {
    g_isParticulating = false;
    g_EcodTM_Vertex = g_EcodTM_FirstVertex;
-   g_particles.clear();
    
    return 0;
 }
@@ -1520,7 +1519,7 @@ void MySdlApplication::keyboard()
       g_rigidBodies[0].isChildVisible = false;
 
       // Create Particles
-      int numParticles = rand() % 10 + 1;
+      int numParticles = rand() % 20 + 1;
       //int numParticles = 1;
 
       for (int i = 0; i < numParticles; i++)

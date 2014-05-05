@@ -24,13 +24,13 @@ Done -	The animation traverses each vertex among the vertices in your cube,
 	it, flashes the two faces adjacent to that edge and proceeds to the vertex on 
 	the other side of that edge and repeats the process. 
 	
--	Needless to say, this might appear quite nightmarish to someone with epilepsy. 
+Done -	Needless to say, this might appear quite nightmarish to someone with epilepsy. 
 	To solve this problem, the b key can be used to blow up your cube. When the b 
 	key is pressed, I would like your program to replace the cube with a particle 
 	system representing an explosion. The particles in this systems should shoot 
 	out randomly in all directions. 
 	
--	Each particle should last a random amount of time between two and five seconds.
+Done -	Each particle should last a random amount of time between two and five seconds.
 	The update step in the motion of the particles should occur in onLoop, and the 
 	drawing occur in onRender. A random number of particles might be generated in 
 	a given onLoop call. Particles need not interact with each other. Particles should 
@@ -43,7 +43,7 @@ Done -	Six seconds after the b key is released, the system should reset itself a
 ///////////////////////
 // Point Breakdown
 //////////////////////
--	Code contributed to existing project is well-documented and 
+Done -	Code contributed to existing project is well-documented and 
 	follows the SJSU CS Department guidelines for C++	1pt
 
 Done -	Winged-edge representation classes implemented (each class 0.5pts).	1.5pts
@@ -54,11 +54,11 @@ Done -	Animation cycles through three colors as described	1pt
 
 Done -	Animation flashes vertices, edges, and faces as described (1 pt each).	3pts
 
--	b key causes the cube to be replaced with the explosion sequence.	0.5pts
+Done -	b key causes the cube to be replaced with the explosion sequence.	0.5pts
 
--	Particle are generated while the b key is pressed (0.5pts), 
+Done -	Particle are generated while the b key is pressed (0.5pts), 
 	
--	direction, number of particles generated is random and done in onLoop 
+Done -	direction, number of particles generated is random and done in onLoop 
 	as well as a particle updates (1pt).
 
 Done -	Animation reset works as described	1pt
