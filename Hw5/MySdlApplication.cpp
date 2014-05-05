@@ -1484,17 +1484,6 @@ static void reshape(const int w, const int h)
    updateFrustFovY();
 }
 /*-----------------------------------------------*/
-bool isAlive(Particle* p)
-{
-   /*	PURPOSE:		Tests whether particle is still alive or not
-      RECEIVES:   p - Particle to be tested
-      RETURNS:    true if particle is still alive false otherwise
-      REMARKS:
-   */
-
-   return p->isAlive;
-}
-/*-----------------------------------------------*/
 void MySdlApplication::keyboard()
 {
    /*	PURPOSE:		Handles all keyboard inputs
@@ -1522,7 +1511,7 @@ void MySdlApplication::keyboard()
       if (g_rigidBodies[0].children[0]->material >= G_NUM_SHADERS)
          g_rigidBodies[0].children[0]->material = 0;
    }
-   else if (KB_STATE[SDL_SCANCODE_B] && !kbPrevState[SDL_SCANCODE_B])
+   else if (KB_STATE[SDL_SCANCODE_B])
    {
       // Particle stuff goes here
       SDL_RemoveTimer(g_animationTimer);
@@ -1531,8 +1520,8 @@ void MySdlApplication::keyboard()
       g_rigidBodies[0].isChildVisible = false;
 
       // Create Particles
-      //int numParticles = rand() % 10 + 1;
-      int numParticles = 1;
+      int numParticles = rand() % 10 + 1;
+      //int numParticles = 1;
 
       for (int i = 0; i < numParticles; i++)
       {
@@ -1660,10 +1649,14 @@ void MySdlApplication::onLoop(int tick, int* prevPhysicsTick, int ticksPerPhysic
             areDeadParticles = true;
       }
       // Remove Erase dead particles
-      int size = g_particles.size();
-      std::vector<Particle*>::iterator itrBegin = g_particles.begin();
-      std::vector<Particle*>::iterator itrEnd = g_particles.end();
-      g_particles.erase(itrBegin, std::remove_if(itrBegin, itrEnd, Particle::testAlive));
+      if (areDeadParticles)
+      {
+         int size = g_particles.size();
+         std::vector<Particle*>::iterator itrBegin = g_particles.begin();
+         std::vector<Particle*>::iterator itrEnd = g_particles.end();
+         g_particles.erase(itrBegin, std::remove_if(itrBegin, itrEnd, Particle::testAlive));
+         areDeadParticles = false;
+      }
 
       // Update Timer
       *prevPhysicsTick += ticksPerPhysics;

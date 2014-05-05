@@ -8,9 +8,6 @@ Particle::Particle()
    x = 0;
    y = 0;
    z = 0;
-   xPos = x;
-   yPos = y;
-   zPos = z;
    xSpeed = 0;
    ySpeed = 0;
    zSpeed = 0;
@@ -22,7 +19,7 @@ Particle::Particle()
    isAlive = true;
 }
 /*-----------------------------------------------*/
-Particle::Particle(RigidBody* data, int lifeSpan, int x, int y, int z, float xSpeed, float ySpeed, 
+Particle::Particle(RigidBody* data, int lifeSpan, float x, float y, float z, float xSpeed, float ySpeed,
    float zSpeed, float gravity)
 {
    this->data = data;
@@ -31,9 +28,6 @@ Particle::Particle(RigidBody* data, int lifeSpan, int x, int y, int z, float xSp
    this->x = x;
    this->y = y;
    this->z = z;
-   this->xPos = x;
-   this->yPos = y;
-   this->zPos = z;
    this->xSpeed = xSpeed;
    this->ySpeed = ySpeed;
    this->zSpeed = zSpeed;
@@ -75,14 +69,11 @@ void Particle::updateParticle(int ms)
    // Update position
    ySpeed -= gravity;
 
-   xPos += xSpeed;
-   yPos += ySpeed;
-   zPos += zSpeed;
-   x = floor(xPos);
-   y = floor(yPos);
-   z = floor(zPos);
+   x += xSpeed;
+   y += ySpeed;
+   z += zSpeed;
 
-   //data->rtf.setTranslation(Cvec3(x, y, z));
+   data->rtf.setTranslation(Cvec3(x, y, z));
 
    // Update color
    colorAlpha = 1 - (colorLife / (lifeSpan / 3.0));
@@ -109,25 +100,34 @@ Particle* Particle::createRandomParticle()
    p->lifeSpan = rand() % 2000 + 2000; // Between 2-4 seconds
    
    // Random Speed
-   p->xSpeed = (rand() % 10) / 10.0; // Between 0-1;
-   p->ySpeed = (rand() % 10) / 10.0;
-   p->zSpeed = (rand() % 10) / 10.0;
+   float low = 0.01;
+   float high = 0.05;
+   float diff = high - low;
+   float random = (float)rand() / RAND_MAX;
+   float r = random * diff;
+   p->xSpeed = low + r;
+   random = (float)rand() / RAND_MAX;
+   r = random * (diff + 0.05);
+   p->ySpeed = low + r;
+   random = (float)rand() / RAND_MAX;
+   r = random * diff;
+   p->zSpeed = low + r;
    
    // Random direction
-   if (rand() % 1 == 1)
+   if ((rand() % 2) == 1)
       p->xSpeed *= -1;
-   if (rand() % 1 == 1)
+   if ((rand() % 2) == 1)
       p->ySpeed *= -1;
-   if (rand() % 1 == 1)
+   if ((rand() % 2) == 1)
       p->zSpeed *= -1;
 
    // Random gravity variation
-   float low = 0;
-   float high = 2.5;
-   float diff = high - low;
-   float random = (float) rand() / RAND_MAX;
-   float r = random * diff;
-   p->gravity = 0;// 9.8 - r;
+   low = 0.001;
+   high = 0.002;
+   diff = high - low;
+   random = (float) rand() / RAND_MAX;
+   r = random * diff;
+   p->gravity = low + r;
 
    return p;
 }

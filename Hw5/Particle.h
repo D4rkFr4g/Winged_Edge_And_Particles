@@ -6,7 +6,7 @@ class Particle
 {
 public:
    Particle();
-   Particle(RigidBody* data, int lifeSpan, int x, int y, int z, float xSpeed, float ySpeed,
+   Particle(RigidBody* data, int lifeSpan, float x, float y, float z, float xSpeed, float ySpeed,
       float zSpeed, float gravity);
    ~Particle();
 
@@ -17,10 +17,10 @@ public:
 
    // Variables
    int life, lifeSpan;
-   int x, y, z; 
    int colorPhase, colorLife;
+   float x, y, z; 
    float colorAlpha;
-   float xPos, yPos, zPos, xSpeed, ySpeed, zSpeed, gravity;
+   float xSpeed, ySpeed, zSpeed, gravity;
    Cvec3 color;
    RigidBody* data;
    bool isAlive;

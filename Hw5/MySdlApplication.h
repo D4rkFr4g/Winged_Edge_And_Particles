@@ -190,6 +190,7 @@ public:
          // draw!
          
          glPointSize(3);
+         glLineWidth(2);
          glDrawElements(mode, iboLen, GL_UNSIGNED_SHORT, 0);
 
          // Disable the attributes used by our shader
