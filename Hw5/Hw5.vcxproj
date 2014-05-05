@@ -78,6 +78,7 @@
   <ItemGroup>
     <ClCompile Include="glsupport.cpp" />
     <ClCompile Include="MySdlApplication.cpp" />
+    <ClCompile Include="Particle.cpp" />
     <ClCompile Include="ppm.cpp" />
     <ClCompile Include="RigidBody.cpp" />
     <ClCompile Include="WE_Edge.cpp" />
@@ -90,6 +91,7 @@
     <ClInclude Include="glsupport.h" />
     <ClInclude Include="matrix4.h" />
     <ClInclude Include="MySdlApplication.h" />
+    <ClInclude Include="Particle.h" />
     <ClInclude Include="quat.h" />
     <ClInclude Include="RigidBody.h" />
     <ClInclude Include="rigtform.h" />

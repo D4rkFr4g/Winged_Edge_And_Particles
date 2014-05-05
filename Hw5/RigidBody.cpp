@@ -82,10 +82,10 @@ void RigidBody::drawRigidBody(RigTForm invEyeRbt)
 void RigidBody::draw(RigTForm respectFrame_, Matrix4 respectScale_)
 {
    /*	PURPOSE:		Draws the RigidBody with respect to parent object
-   RECEIVES:	respectFrame_ - Parent Object frame
-   respectScale_ - Parent Object scale
-   RETURNS:
-   REMARKS:		 Recursive function
+      RECEIVES:	respectFrame_ - Parent Object frame
+      respectScale_ - Parent Object scale
+      RETURNS:
+      REMARKS:		 Recursive function
    */
 
    const MySdlApplication::ShaderState& curSS = MySdlApplication::setupShader(material);

@@ -24,7 +24,7 @@ Done -	The animation traverses each vertex among the vertices in your cube,
 	it, flashes the two faces adjacent to that edge and proceeds to the vertex on 
 	the other side of that edge and repeats the process. 
 	
--	Needly to say, this might appear quite nightmarish to someone with epilepsy. 
+-	Needless to say, this might appear quite nightmarish to someone with epilepsy. 
 	To solve this problem, the b key can be used to blow up your cube. When the b 
 	key is pressed, I would like your program to replace the cube with a particle 
 	system representing an explosion. The particles in this systems should shoot 

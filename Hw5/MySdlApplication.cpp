@@ -15,6 +15,7 @@ with a simple particle system.
 #include "WE_Edge.h"
 #include "WE_Face.h"
 #include "WE_Vertex.h"
+#include "Particle.h"
 
 using namespace std;
 using namespace tr1;
@@ -60,6 +61,7 @@ static const float G_FRUST_NEAR = -0.1f;    // near plane
 static const float G_FRUST_FAR = -100.0f;    // far plane
 static const float G_GROUND_Y = 0.0f;      // y coordinate of the ground
 static const float G_GROUND_SIZE = 50.0f;   // half the ground length
+static const int G_MAX_PARTICLES = 1000;
 
 // Global variables
 int g_windowWidth = 640;
@@ -75,9 +77,11 @@ SDL_TimerID g_animationReset;
 static bool g_isAnimating = false;
 static bool g_isParticulating = false;
 static WE_Vertex* g_EcodTM_Vertex;
+static WE_Vertex* g_EcodTM_FirstVertex;
 static WE_Edge g_weEdges[24];
 static WE_Face g_weFaces[16];
 static WE_Vertex g_weVertices[10];
+static std::vector<Particle*> g_particles;
 
 static float g_frustFovY = G_FRUST_MIN_FOV; // FOV in y direction
 
@@ -567,6 +571,7 @@ static void buildWingEdgedCube(RigidBody** vertices, RigidBody** edges, RigidBod
    }
 
    g_EcodTM_Vertex = &g_weVertices[0];
+   g_EcodTM_FirstVertex = &g_weVertices[0];
 
    // Set edges for all vertices (10)
    int i = 0;
@@ -860,6 +865,8 @@ static void initGround()
 Uint32 animationReset(Uint32 interval, void *param)
 {
    g_isParticulating = false;
+   g_EcodTM_Vertex = g_EcodTM_FirstVertex;
+   g_particles.clear();
    
    return 0;
 }
@@ -1416,6 +1423,10 @@ static void drawStuff()
    // Draw all Rigid body objects
    for (int i = 0; i < G_NUM_OF_OBJECTS; i++)
       g_rigidBodies[i].drawRigidBody(invEyeRbt);
+
+   // Draw all Particles
+   for (int i = 0; i < g_particles.size(); i++)
+      g_particles[i]->data->drawRigidBody(invEyeRbt);
 }
 /*-----------------------------------------------*/
 const MySdlApplication::ShaderState& MySdlApplication::setupShader(int material)
@@ -1473,6 +1484,17 @@ static void reshape(const int w, const int h)
    updateFrustFovY();
 }
 /*-----------------------------------------------*/
+bool isAlive(Particle* p)
+{
+   /*	PURPOSE:		Tests whether particle is still alive or not
+      RECEIVES:   p - Particle to be tested
+      RETURNS:    true if particle is still alive false otherwise
+      REMARKS:
+   */
+
+   return p->isAlive;
+}
+/*-----------------------------------------------*/
 void MySdlApplication::keyboard()
 {
    /*	PURPOSE:		Handles all keyboard inputs
@@ -1509,7 +1531,17 @@ void MySdlApplication::keyboard()
       g_rigidBodies[0].isChildVisible = false;
 
       // Create Particles
+      //int numParticles = rand() % 10 + 1;
+      int numParticles = 1;
 
+      for (int i = 0; i < numParticles; i++)
+      {
+         Particle* p = Particle::createRandomParticle();
+         p->data = new RigidBody(RigTForm(), Matrix4(), NULL, initPoint(), Cvec3(1.0, 1.0, 1.0), SOLID);
+         p->data->mode = GL_POINTS;
+
+         g_particles.push_back(p);
+      }
    }
    else if (KB_STATE[SDL_SCANCODE_N])
       g_isParticulating = false;
@@ -1605,7 +1637,7 @@ void MySdlApplication::motion(const int x, const int y)
 
 }
 /*-----------------------------------------------*/
-void MySdlApplication::onLoop()
+void MySdlApplication::onLoop(int tick, int* prevPhysicsTick, int ticksPerPhysics)
 {
    /*	PURPOSE:		Handles function calls that need to run once per SDL loop
       RECEIVES:
@@ -1615,6 +1647,27 @@ void MySdlApplication::onLoop()
 
    // Logic goes here
    keyboard();
+
+
+   while (tick > *prevPhysicsTick + ticksPerPhysics)
+   {
+      // Update particles
+      bool areDeadParticles = false;
+      for (int i = 0; i < g_particles.size(); i++)
+      {
+         g_particles[i]->updateParticle(ticksPerPhysics);
+         if (!areDeadParticles && !g_particles[i]->isAlive)
+            areDeadParticles = true;
+      }
+      // Remove Erase dead particles
+      int size = g_particles.size();
+      std::vector<Particle*>::iterator itrBegin = g_particles.begin();
+      std::vector<Particle*>::iterator itrEnd = g_particles.end();
+      g_particles.erase(itrBegin, std::remove_if(itrBegin, itrEnd, Particle::testAlive));
+
+      // Update Timer
+      *prevPhysicsTick += ticksPerPhysics;
+   }
 
    // Restart animation if need be
    if (!g_isAnimating && !g_isParticulating)
@@ -1657,6 +1710,10 @@ int MySdlApplication::onExecute()
 
    if (onInit() == false)
       return -1;
+   
+   int prevTick = SDL_GetTicks();
+   int ticksPerPhysics = 1000 / 100;
+   int prevPhysicsTick = prevTick;
 
    SDL_Event Event;
    while (running)
@@ -1668,7 +1725,9 @@ int MySdlApplication::onExecute()
          onEvent(&Event);
       }
 
-      onLoop();
+      int tick = SDL_GetTicks();
+
+      onLoop(tick, &prevPhysicsTick, ticksPerPhysics);
       onRender();
    }
 
@@ -1739,6 +1798,7 @@ bool MySdlApplication::onInit()
 
    srand((unsigned)time(NULL));
    KB_STATE = SDL_GetKeyboardState(NULL);
+   g_particles.reserve(G_MAX_PARTICLES);
 
    return true;
 }

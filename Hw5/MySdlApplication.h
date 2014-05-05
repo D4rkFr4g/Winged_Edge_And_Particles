@@ -13,6 +13,7 @@
 #include <SDL_image.h>
 #include <iostream>
 #include <random>
+#include <algorithm>
 #include "cvec.h"
 #include "matrix4.h"
 #include "geometrymaker.h"
@@ -46,7 +47,7 @@ public:
    bool onInit();
    void onEvent(SDL_Event* Event);
    void keyboard();
-   void onLoop();
+   void onLoop(int tick, int* prevPhysicsTick, int ticksPerPhysics);
    void onRender();
    void onCleanup();
 
@@ -187,6 +188,7 @@ public:
          glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 
          // draw!
+         
          glPointSize(3);
          glDrawElements(mode, iboLen, GL_UNSIGNED_SHORT, 0);
 
